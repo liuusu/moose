@@ -82,13 +82,6 @@ void
 MeshCut3DUserObject::initialize()
 {
   std::cout << "==================================================================init mesh cutter" << std::endl;
-  const PostprocessorValue * pp_values;
-  pp_values = &getPostprocessorValueByName("value");
-  std::cout << static_cast<Real>(*pp_values) << "%%%%%%pp" << std::endl;
-  const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("a_vpp","disp_x");
-  std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
-  //const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("point_sample","disp_y");
-  //std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
   // 2019
   std::cout << "~~~~~~ Cutter Mesh Update ~~~~~~" << "\n";
   std::ofstream myfile;
@@ -137,6 +130,17 @@ MeshCut3DUserObject::initialize()
 
     if (_n_timestep > 1)
     {
+
+
+      const PostprocessorValue * pp_values;
+      pp_values = &getPostprocessorValueByName("value");
+      std::cout << static_cast<Real>(*pp_values) << "%%%%%%pp" << std::endl;
+      //const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("a_vpp","disp_x");
+      //std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
+      const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("point_sample","disp_y");
+      std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
+
+
       for (unsigned int i = 0; i < _n_step_growth; ++i)
       {
         findActiveBoundaryNodes();
