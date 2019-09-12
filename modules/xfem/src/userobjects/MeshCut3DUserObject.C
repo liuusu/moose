@@ -43,12 +43,15 @@ validParams<MeshCut3DUserObject>()
 // all inital cracks are defined at t_start = t_end = 0
 MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
   : GeometricCutUserObject(parameters),
+    VectorPostprocessorInterface(this),
     _mesh(_subproblem.mesh()),
     _n_step_growth(getParam<unsigned int>("n_step_growth")),
     _func_x(getFunction("function_x")),
     _func_y(getFunction("function_y")),
     _func_z(getFunction("function_z"))
 {
+  std::cout << "==================================================================create meshcutter" << std::endl;
+
   _grow = (_n_step_growth == 0 ? 0 : 1);
   _n_timestep = 0;
 
@@ -78,6 +81,14 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 void
 MeshCut3DUserObject::initialize()
 {
+  std::cout << "==================================================================init mesh cutter" << std::endl;
+  const PostprocessorValue * pp_values;
+  pp_values = &getPostprocessorValueByName("value");
+  std::cout << static_cast<Real>(*pp_values) << "%%%%%%pp" << std::endl;
+  const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("a_vpp","disp_x");
+  std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
+  //const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("point_sample","disp_y");
+  //std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
   // 2019
   std::cout << "~~~~~~ Cutter Mesh Update ~~~~~~" << "\n";
   std::ofstream myfile;
@@ -317,6 +328,42 @@ MeshCut3DUserObject::intersectWithEdge(const Point & p1,
   }
   return has_intersection;
 }
+
+//const VectorPostprocessorValue &
+//MeshCut3DUserObject::getVectorPostprocessorValue(const std::string & name,
+//                                               const std::string & vector_name)
+//{
+//  _depend_vars.insert(_pars.get<VectorPostprocessorName>(name));
+//  return VectorPostprocessorInterface::getVectorPostprocessorValue(name, vector_name);
+//}
+//
+// const VectorPostprocessorValue &
+// MeshCut3DUserObject::getVectorPostprocessorValueByName(const VectorPostprocessorName & name,
+//                                                      const std::string & vector_name)
+// {
+//   _depend_vars.insert(name);
+//   return VectorPostprocessorInterface::getVectorPostprocessorValueByName(name, vector_name);
+// }
+//
+// const VectorPostprocessorValue &
+// MeshCut3DUserObject::getVectorPostprocessorValue(const std::string & name,
+//                                                const std::string & vector_name,
+//                                                bool use_broadcast)
+// {
+//   _depend_vars.insert(_pars.get<VectorPostprocessorName>(name));
+//   return VectorPostprocessorInterface::getVectorPostprocessorValue(
+//       name, vector_name, use_broadcast);
+// }
+//
+// const VectorPostprocessorValue &
+// MeshCut3DUserObject::getVectorPostprocessorValueByName(const VectorPostprocessorName & name,
+//                                                      const std::string & vector_name,
+//                                                      bool use_broadcast)
+// {
+//   _depend_vars.insert(name);
+//   return VectorPostprocessorInterface::getVectorPostprocessorValueByName(
+//       name, vector_name, use_broadcast);
+// }
 
 bool
 MeshCut3DUserObject::findIntersection(const Point & p1,

@@ -54,13 +54,18 @@ VectorPostprocessorComparison::initialize()
 void
 VectorPostprocessorComparison::execute()
 {
+  const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("a_vpp","disp_x");
+  std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
+
   if (_values_a.size() != _values_b.size())
     mooseError("The compared vector post-processors must have the same size");
 
   // Set comparison value to "false" if comparison is false for any pair of elements
   bool comparison_bool = true;
   for (unsigned int i = 0; i < _values_a.size(); ++i)
+  {
     comparison_bool = comparison_bool && comparisonIsTrue(_values_a[i], _values_b[i]);
+  }
 
   _comparison_value = comparison_bool;
 }

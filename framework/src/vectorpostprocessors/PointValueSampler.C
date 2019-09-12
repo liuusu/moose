@@ -28,12 +28,15 @@ validParams<PointValueSampler>()
 PointValueSampler::PointValueSampler(const InputParameters & parameters)
   : PointSamplerBase(parameters)
 {
+  std::cout << "==================================================================create pointsampler" << std::endl;
   _points = getParam<std::vector<Point>>("points");
 }
 
 void
 PointValueSampler::initialize()
 {
+  std::cout << "==================================================================init pointsampler" << std::endl;
+
   // Generate new Ids if the point vector has grown (non-negative counting numbers)
   if (_points.size() > _ids.size())
   {

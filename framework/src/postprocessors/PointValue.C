@@ -49,6 +49,7 @@ void
 PointValue::execute()
 {
   _value = _system.point_value(_var_number, _point, false);
+  std::cout << _value << "######" << std::endl;
 
   /**
    * If we get exactly zero, we don't know if the locator couldn't find an element, or

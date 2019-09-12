@@ -10,6 +10,7 @@
 #pragma once
 
 #include "GeometricCutUserObject.h"
+#include "VectorPostprocessorInterface.h"
 
 #include <array>
 
@@ -25,7 +26,8 @@ InputParameters validParams<MeshCut3DUserObject>();
  * (3) grows the mesh based on prescribed growth functions.
  */
 
-class MeshCut3DUserObject : public GeometricCutUserObject
+class MeshCut3DUserObject : public GeometricCutUserObject,
+                            protected VectorPostprocessorInterface
 {
 public:
   MeshCut3DUserObject(const InputParameters & parameters);
@@ -48,7 +50,21 @@ public:
                                      std::vector<Xfem::CutFace> & cut_faces,
                                      Real time) const override;
 
+//  virtual const VectorPostprocessorValue &
+//                                     getVectorPostprocessorValue(const std::string & name, const std::string & vector_name) override;
+//  virtual const VectorPostprocessorValue &
+//                                     getVectorPostprocessorValueByName(const VectorPostprocessorName & name,
+//                                                                       const std::string & vector_name) override;
+//  virtual const VectorPostprocessorValue & getVectorPostprocessorValue(
+//                                         const std::string & name, const std::string & vector_name, bool use_broadcast) override;
+//  virtual const VectorPostprocessorValue &
+//                                     getVectorPostprocessorValueByName(const VectorPostprocessorName & name,
+//                                                                       const std::string & vector_name,
+//                                                                       bool use_broadcast) override;
+
 protected:
+//  std::set<std::string> _depend_vars;
+
   /// The cutter mesh
   std::unique_ptr<MeshBase> _cut_mesh;
 
