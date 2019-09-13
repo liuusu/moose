@@ -11,26 +11,16 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  nx = 5
-  ny = 5
-  nz = 2
-  xmin = 0.0
-  xmax = 3.0
-  ymin = 0.0
-  ymax = 3.0
-  zmin = 0.0
-  zmax = 1.0
-  elem_type = HEX8
+  file = clad_mesh.e
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack.xda
-    size_control = 0.5
+    mesh_file = clad_cut.xda
+    size_control = 0.00051282
     n_step_growth = 1
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -40,7 +30,7 @@
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value = 1
+    value = 0
   [../]
   [./growth_func_y]
     type = ParsedFunction
@@ -48,7 +38,7 @@
   [../]
   [./growth_func_z]
     type = ParsedFunction
-    value = 0
+    value = z
   [../]
 []
 
@@ -127,7 +117,7 @@
     variable = SED
     property = strain_energy_density
     execute_on = timestep_end
-    block = 0
+    block = 1
   [../]
 []
 
@@ -140,53 +130,61 @@
 
 
 [BCs]
-  [./top_y]
-    type = FunctionNeumannBC
-    boundary = top
-    variable = disp_y
-    function = top_trac_y
+  [./Pressure]
+    [./inner]
+      boundary = 103
+      function = 1
+      displacements = 'disp_x disp_y disp_z'
+    [../]
   [../]
+#  [./inner]
+#    type = DirichletBC
+#    boundary = 103
+#    variable = pressure
+#    value = 1000000
+#  [../]
   [./bottom_x]
     type = PresetBC
-    boundary = bottom
+    boundary = 101
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
     type = PresetBC
-    boundary = bottom
+    boundary = 101
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
     type = PresetBC
-    boundary = bottom
+    boundary = 101
     variable = disp_z
     value = 0.0
   [../]
-[]
-
-[Postprocessors]
-  [./value]
-    type = PointValue
-    variable = 'disp_y'
-    point = '3.0 3.0 1.0'
+  [./top_x]
+    type = PresetBC
+    boundary = 102
+    variable = disp_x
+    value = 0.0
   [../]
-[]
-
-[VectorPostprocessors]
-  [./point_sample]
-    type = PointValueSampler
-    variable = 'disp_y'
-    points = '3.0 3.0 1.0'
-    sort_by = x
+  [./top_y]
+    type = PresetBC
+    boundary = 102
+    variable = disp_y
+    value = 0.0
+  [../]
+  [./top_z]
+    type = PresetBC
+    boundary = 102
+    variable = disp_z
+    value = 0.0
   [../]
 []
 
 [Materials]
   [./linelast]
     type = Elastic
-    block = 0
+    block = 1
     disp_x = disp_x
     disp_y = disp_y
     disp_z = disp_z
@@ -217,8 +215,6 @@
   l_max_its = 100
   l_tol = 1e-2
 
-
-
 # controls for nonlinear iterations
   nl_max_its = 15
   nl_rel_tol = 1e-8
@@ -227,15 +223,14 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 2.0
+  end_time = 18.0
   max_xfem_update = 1
 []
 
 [Outputs]
-  file_base = edge_crack_3d_mesh_out
+  file_base = clad
   execute_on = 'timestep_end'
   exodus = true
-  csv = true
   [./console]
     type = Console
     output_linear = true

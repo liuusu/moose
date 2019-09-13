@@ -15,38 +15,28 @@
   dim = 3
   nx = 5
   ny = 5
-  nz = 5
+  nz = 2
   xmin = 0.0
-  xmax = 5.0
+  xmax = 1.0
   ymin = 0.0
-  ymax = 5.0
+  ymax = 1.0
   zmin = 0.0
-  zmax = 5.0
+  zmax = 0.2
   elem_type = HEX8
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack2.xda
-    size_control = 0.5
-    n_step_growth = 1
-    function_x = growth_func_x
-    function_y = growth_func_y
-    function_z = growth_func_z
+    mesh_file = mesh_edge_crack.xda
+    function_x = null
+    function_y = null
+    function_z = null
   [../]
 []
 
 [Functions]
-  [./growth_func_x]
-    type = ParsedFunction
-    value = 1
-  [../]
-  [./growth_func_y]
-    type = ParsedFunction
-    value = 0
-  [../]
-  [./growth_func_z]
+  [./null]
     type = ParsedFunction
     value = 0
   [../]
@@ -82,6 +72,22 @@
    order = CONSTANT
     family = MONOMIAL
   [../]
+[]
+
+[DomainIntegral]
+  integrals = 'Jintegral InteractionIntegralKI'
+  crack_front_points = '0.4 0.5 0.0
+                        0.4 0.5 0.1
+                        0.4 0.5 0.2'
+  crack_direction_method = CrackDirectionVector
+  crack_direction_vector = '1 0 0'
+  radius_inner = '0.2'
+  radius_outer = '0.4'
+  poissons_ratio = 0.3
+  youngs_modulus = 207000
+  block = 0
+  solid_mechanics = true
+  incremental = true
 []
 
 [SolidMechanics]
@@ -183,11 +189,8 @@
   type = Transient
 
   solve_type = 'PJFNK'
-  # petsc_options_iname = '-ksp_gmres_restart -pc_type -pc_hypre_type -pc_hypre_boomeramg_max_iter'
-  # petsc_options_value = '201                hypre    boomeramg      8'
-
-  petsc_options_iname = '-pc_type'
-  petsc_options_value = 'lu'
+  petsc_options_iname = '-ksp_gmres_restart -pc_type -pc_hypre_type -pc_hypre_boomeramg_max_iter'
+  petsc_options_value = '201                hypre    boomeramg      8'
 
   line_search = 'none'
 
@@ -200,18 +203,15 @@
   l_max_its = 100
   l_tol = 1e-2
 
-
-
 # controls for nonlinear iterations
   nl_max_its = 15
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-12
+  nl_abs_tol = 1e-10
 
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 4.0
-  max_xfem_update = 1
+  end_time = 1.0
 []
 
 [Outputs]

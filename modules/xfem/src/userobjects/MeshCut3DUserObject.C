@@ -29,9 +29,10 @@ validParams<MeshCut3DUserObject>()
   params.addRequiredParam<MeshFileName>(
       "mesh_file",
       "Mesh file for the XFEM geometric cut; currently only the xda type is supported");
-  params.addRequiredParam<FunctionName>("function_x", "Growth function for x direction");
-  params.addRequiredParam<FunctionName>("function_y", "Growth function for y direction");
-  params.addRequiredParam<FunctionName>("function_z", "Growth function for z direction");
+  params.addRequiredParam<std::string>("growth_type","choose from function, aux_circle");
+  params.addParam<FunctionName>("function_x", "Growth function for x direction");
+  params.addParam<FunctionName>("function_y", "Growth function for y direction");
+  params.addParam<FunctionName>("function_z", "Growth function for z direction");
   params.addParam<Real>(
       "size_control", 0, "Criterion for refining elements while growing the crack");
   params.addParam<unsigned int>("n_step_growth", 0, "Number of steps for crack growth");
@@ -45,13 +46,12 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
   : GeometricCutUserObject(parameters),
     VectorPostprocessorInterface(this),
     _mesh(_subproblem.mesh()),
+    _growth_type(getParam<std::string>("growth_type")),
     _n_step_growth(getParam<unsigned int>("n_step_growth")),
-    _func_x(getFunction("function_x")),
-    _func_y(getFunction("function_y")),
-    _func_z(getFunction("function_z"))
+    _func_x(parameters.isParamValid("function_x") ? &getFunction("function_x") : NULL),
+    _func_y(parameters.isParamValid("function_y") ? &getFunction("function_y") : NULL),
+    _func_z(parameters.isParamValid("function_z") ? &getFunction("function_z") : NULL)
 {
-  std::cout << "==================================================================create meshcutter" << std::endl;
-
   _grow = (_n_step_growth == 0 ? 0 : 1);
   _n_timestep = 0;
 
@@ -61,6 +61,10 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
       mooseError("Crack growth needs size control");
 
     _size_control = getParam<Real>("size_control");
+
+    // the three _func_ seem to be required right now.  But later they will become optional for some choices of _growth_method
+    if (_func_x == NULL || _func_y == NULL || _func_z == NULL)
+      mooseError("growth function is not specified for the Function Growth method");
   }
 
   // only the xda type is currently supported
@@ -81,9 +85,8 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 void
 MeshCut3DUserObject::initialize()
 {
-  std::cout << "==================================================================init mesh cutter" << std::endl;
-  // 2019
-  std::cout << "~~~~~~ Cutter Mesh Update ~~~~~~" << "\n";
+  std::cout << "------ Cutter Mesh Update ------" << "\n";
+  // writing mesh to output file for visualization
   std::ofstream myfile;
   myfile.open("mesh_grow.out", std::fstream::app);
   myfile << _cut_mesh->n_nodes() << std::endl;
@@ -111,11 +114,8 @@ MeshCut3DUserObject::initialize()
     myfile << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
   }
 
+  std::cout << "current time step: " << _n_timestep << std::endl;
 
-
-  std::cout << "2019 time step is: " << _n_timestep << std::endl;
-
-  // this is a test of all methods relevant to front growth
   if (_grow)
   {
     _stop = 0;
@@ -130,17 +130,6 @@ MeshCut3DUserObject::initialize()
 
     if (_n_timestep > 1)
     {
-
-
-      const PostprocessorValue * pp_values;
-      pp_values = &getPostprocessorValueByName("value");
-      std::cout << static_cast<Real>(*pp_values) << "%%%%%%pp" << std::endl;
-      //const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("a_vpp","disp_x");
-      //std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
-      const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("point_sample","disp_y");
-      std::cout << vpp_values[0] << "%%%%%%vpp" << std::endl;
-
-
       for (unsigned int i = 0; i < _n_step_growth; ++i)
       {
         findActiveBoundaryNodes();
@@ -149,10 +138,6 @@ MeshCut3DUserObject::initialize()
         {
           findActiveBoundaryDirection();
           growFront();
-          std::cout << "~~~~ I am growing the mesh" << std::endl;
-          std::cout << "" << std::endl;
-          std::cout << "" << std::endl;
-          std::cout << "From cutElementByGeometry:" << std::endl;
           sortFrontNodes();
 
           if (_inactive_boundary_pos.size() != 0)
@@ -168,10 +153,7 @@ MeshCut3DUserObject::initialize()
 
   _n_timestep++;
 
-
-
-
-  // 2019
+  // writing mesh to output file for visualization
   myfile << _cut_mesh->n_nodes() << std::endl;
   myfile << _cut_mesh->n_elem() << std::endl;
   node_begin = _cut_mesh->nodes_begin();
@@ -197,7 +179,6 @@ MeshCut3DUserObject::initialize()
     myfile << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
   }
   myfile.close();
-
 }
 
 bool
@@ -269,7 +250,6 @@ MeshCut3DUserObject::cutElementByGeometry(const Elem * elem,
     // if two edges of an element are cut, it is considered as an element being cut
     if (cut_edges.size() == 2)
     {
-      std::cout << "Element Face Being Cut: " << elem->id() << std::endl;
       elem_cut = true;
       Xfem::CutFace mycut;
       mycut._face_id = i;
@@ -840,9 +820,19 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       mooseAssert(this_node, "Node is NULL");
       Point & this_point = *this_node;
 
-      dir(0) = _func_x.value(0, this_point);
-      dir(1) = _func_y.value(0, this_point);
-      dir(2) = _func_z.value(0, this_point);
+      if (_growth_type == "function")
+      {
+        dir(0) = _func_x->value(0, this_point);
+        dir(1) = _func_y->value(0, this_point);
+        dir(2) = _func_z->value(0, this_point);
+      }
+      else if (_growth_type == "aux_circle")
+      {
+        // these seem to be the same for all _growth_type; but later we will change for some _growth_type
+        dir(0) = _func_x->value(0, this_point);
+        dir(1) = _func_y->value(0, this_point);
+        dir(2) = _func_z->value(0, this_point);
+      }
 
       temp.push_back(dir);
     }
@@ -857,6 +847,7 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
     _active_direction.push_back(temp);
   }
 
+  // normalize the directional vector
   Real maxl = 0;
 
   for (unsigned int i = 0; i < _active_direction.size(); ++i)
@@ -904,8 +895,19 @@ MeshCut3DUserObject::growFront()
       Point dir = _active_direction[i][j];
 
       Point x;
-      for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
-        x(k) = this_point(k) + dir(k) * _size_control * 2;
+
+      if (_growth_type == "function")
+        for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+          x(k) = this_point(k) + dir(k) * _size_control;
+
+      else if (_growth_type == "aux_circle")
+      {
+        const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("point_sample","K_aux");
+        Real K_aux = vpp_values[0];
+        std::cout << "current K_aux: " << K_aux << std::endl;
+        for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+          x(k) = this_point(k) + dir(k) * _size_control * K_aux;
+      }
 
       this_node = Node::build(x, _cut_mesh->n_nodes()).release();
       _cut_mesh->add_node(this_node);

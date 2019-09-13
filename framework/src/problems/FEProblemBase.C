@@ -2854,13 +2854,6 @@ FEProblemBase::getVectorPostprocessorData() const
 bool
 FEProblemBase::hasVectorPostprocessor(const std::string & name)
 {
-  std::cout << "******************2" << std::endl;
-  std::cout << "*******************" << std::endl;
-  std::cout << "*******************" << std::endl;
-  std::cout << "*******************" << std::endl;
-  std::cout << "*******************" << std::endl;
-  std::cout << "*******************" << std::endl;
-
   return _vpps_data.hasVectorPostprocessor(name);
 }
 
@@ -2893,7 +2886,6 @@ FEProblemBase::getVectorPostprocessorValue(const VectorPostprocessorName & name,
                                            const std::string & vector_name,
                                            bool needs_broadcast)
 {
-  std::cout << "******************FEProblemBase::getVectorPostprocessorValue" << std::endl;
   return _vpps_data.getVectorPostprocessorValue(name, vector_name, needs_broadcast);
 }
 

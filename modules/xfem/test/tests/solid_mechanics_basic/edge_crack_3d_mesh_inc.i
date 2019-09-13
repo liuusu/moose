@@ -31,6 +31,7 @@
     mesh_file = mesh_edge_crack_inc.xda
     size_control = 0.5
     n_step_growth = 1
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z

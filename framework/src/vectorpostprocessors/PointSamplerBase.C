@@ -48,10 +48,7 @@ PointSamplerBase::PointSamplerBase(const InputParameters & parameters)
   std::vector<std::string> var_names(_coupled_moose_vars.size());
 
   for (unsigned int i = 0; i < _coupled_moose_vars.size(); i++)
-  {
     var_names[i] = _coupled_moose_vars[i]->name();
-    std::cout << _coupled_moose_vars[i]->name() << "+++++++++++++++++" << std::endl;
-  }
 
   // Initialize the datastructions in SamplerBase
   SamplerBase::setupVariables(var_names);
@@ -111,7 +108,6 @@ PointSamplerBase::execute()
         for (MooseIndex(_coupled_moose_vars) j = 0; j < _coupled_moose_vars.size(); ++j)
           values[j] = (dynamic_cast<MooseVariable *>(_coupled_moose_vars[j]))->sln()[0] *
                       _pp_value; // The zero is for the "qp"
-        std::cout << values[0] << "@@@@@@" << std::endl;
         _found_points[i] = true;
       }
     }

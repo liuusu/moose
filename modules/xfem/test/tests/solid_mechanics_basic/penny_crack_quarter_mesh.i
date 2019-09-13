@@ -15,22 +15,23 @@
   dim = 3
   nx = 5
   ny = 5
-  nz = 2
+  nz = 5
   xmin = 0.0
-  xmax = 3.0
+  xmax = 5.0
   ymin = 0.0
-  ymax = 3.0
+  ymax = 5.0
   zmin = 0.0
-  zmax = 1.0
+  zmax = 5.0
   elem_type = HEX8
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack.xda
+    mesh_file = mesh_penny_quarter.xda
     size_control = 0.5
     n_step_growth = 1
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -40,7 +41,7 @@
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value = 1
+    value = x
   [../]
   [./growth_func_y]
     type = ParsedFunction
@@ -48,7 +49,7 @@
   [../]
   [./growth_func_z]
     type = ParsedFunction
-    value = 0
+    value = z
   [../]
 []
 
@@ -146,21 +147,21 @@
     variable = disp_y
     function = top_trac_y
   [../]
-  [./bottom_x]
-    type = PresetBC
-    boundary = bottom
-    variable = disp_x
-    value = 0.0
-  [../]
   [./bottom_y]
     type = PresetBC
     boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
-  [./bottom_z]
+  [./left_x]
     type = PresetBC
-    boundary = bottom
+    boundary = left
+    variable = disp_x
+    value = 0.0
+  [../]
+  [./front_z]
+    type = PresetBC
+    boundary = back
     variable = disp_z
     value = 0.0
   [../]
@@ -210,7 +211,7 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 2.0
+  end_time = 4.0
   max_xfem_update = 1
 []
 

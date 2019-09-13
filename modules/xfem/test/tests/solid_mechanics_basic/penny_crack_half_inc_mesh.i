@@ -28,9 +28,10 @@
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack_incpenny.xda
-    size_control = 1
+    mesh_file = mesh_penny_half_inc.xda
+    size_control = 0.3
     n_step_growth = 1
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -40,15 +41,15 @@
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value =0.57735*(x-2.5)+0.5774*(z-2.5)
+    value =0.57735*(x-0)+0.5774*(z-2.5)
   [../]
   [./growth_func_y]
     type = ParsedFunction
-    value =0*(x-2.5)-0.7071*(z-2.5)
+    value =0*(x-0)-0.7071*(z-2.5)
   [../]
   [./growth_func_z]
     type = ParsedFunction
-    value =-0.8165*(x-2.5)+0.4082*(z-2.5)
+    value =-0.8165*(x-0)+0.4082*(z-2.5)
   [../]
 []
 

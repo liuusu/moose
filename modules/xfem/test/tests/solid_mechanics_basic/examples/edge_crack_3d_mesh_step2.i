@@ -15,22 +15,23 @@
   dim = 3
   nx = 5
   ny = 5
-  nz = 2
+  nz = 5
   xmin = 0.0
-  xmax = 3.0
+  xmax = 5.0
   ymin = 0.0
-  ymax = 3.0
+  ymax = 5.0
   zmin = 0.0
-  zmax = 1.0
+  zmax = 5.0
   elem_type = HEX8
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack.xda
+    mesh_file = mesh_edge_crack2.xda
     size_control = 0.5
     n_step_growth = 1
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -166,32 +167,6 @@
   [../]
 []
 
-[VectorPostprocessors]
-  [./a_vpp]
-    type = PointValueSampler
-    variable = 'disp_x'
-    points = '3.0 3.0 1.0'
-    sort_by = x
-  [../]
-  [./b_vpp]
-    type = PointValueSampler
-    variable = 'disp_y'
-    points = '3.0 3.0 1.0'
-    sort_by = x
-  [../]
-[]
-
-[Postprocessors]
-  [./vpp_comparison]
-    type = VectorPostprocessorComparison
-    vectorpostprocessor_a = a_vpp
-    vectorpostprocessor_b = b_vpp
-    vector_name_a = 'disp_x'
-    vector_name_b = 'disp_y'
-    comparison_type = greater_than_equals
-  [../]
-[]
-
 [Materials]
   [./linelast]
     type = Elastic
@@ -236,7 +211,7 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 2.0
+  end_time = 4.0
   max_xfem_update = 1
 []
 
@@ -244,7 +219,6 @@
   file_base = edge_crack_3d_mesh_out
   execute_on = 'timestep_end'
   exodus = true
-  csv = true
   [./console]
     type = Console
     output_linear = true

@@ -13,24 +13,25 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 9
-  ny = 9
-  nz = 9
+  nx = 5
+  ny = 5
+  nz = 2
   xmin = 0.0
-  xmax = 5.0
+  xmax = 3.0
   ymin = 0.0
-  ymax = 5.0
+  ymax = 3.0
   zmin = 0.0
-  zmax = 5.0
+  zmax = 1.0
   elem_type = HEX8
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack_incpenny3.xda
-    size_control = 0.3
+    mesh_file = mesh_edge_crack.xda
     n_step_growth = 1
+    size_control = 0.5
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -40,15 +41,15 @@
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value =0.57735*(x-0)+0.5774*(z-2.5)
+    value = 1
   [../]
   [./growth_func_y]
     type = ParsedFunction
-    value =0*(x-0)-0.7071*(z-2.5)
+    value = 0
   [../]
   [./growth_func_z]
     type = ParsedFunction
-    value =-0.8165*(x-0)+0.4082*(z-2.5)
+    value = 0
   [../]
 []
 
@@ -80,6 +81,10 @@
   [../]
   [./SED]
    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./K_aux]
+    order = CONSTANT
     family = MONOMIAL
   [../]
 []
@@ -129,6 +134,11 @@
     execute_on = timestep_end
     block = 0
   [../]
+  [./K_aux]
+    type = FunctionAux
+    variable = K_aux
+    function = K_aux_func
+  [../]
 []
 
 [Functions]
@@ -136,8 +146,11 @@
     type = ConstantFunction
     value = 10
   [../]
+  [./K_aux_func]
+    type = ParsedFunction
+    value = '1+t'
+  [../]
 []
-
 
 [BCs]
   [./top_y]
@@ -163,6 +176,15 @@
     boundary = bottom
     variable = disp_z
     value = 0.0
+  [../]
+[]
+
+[VectorPostprocessors]
+  [./point_sample]
+    type = PointValueSampler
+    variable = 'disp_y K_aux'
+    points = '3.0 3.0 1.0'
+    sort_by = x
   [../]
 []
 

@@ -42,7 +42,6 @@ VectorPostprocessorData::getVectorPostprocessorValue(const VectorPostprocessorNa
                                                      bool needs_broadcast)
 {
   _requested_items.emplace(vpp_name + "::" + vector_name);
-  std::cout << "==================VectorPostprocessorData::getVectorPostprocessorValue" << std::endl;
 
   // Note: the "false" parameters here are just dummies.  They will not change the value of
   // these booleans in the structs because they are or-equaled (|=) in
@@ -138,8 +137,6 @@ VectorPostprocessorData::getVectorPostprocessorHelper(const VectorPostprocessorN
                                                       bool needs_broadcast,
                                                       bool needs_scatter)
 {
-  std::cout << "==================VectorPostprocessorData::getVectorPostprocessorHelper" << std::endl;
-  std::cout << vpp_name << ", " << vector_name << std::endl;
   // Retrieve or create the data structure for this VPP
   auto vec_it_pair = _vpp_data.emplace(
       std::piecewise_construct, std::forward_as_tuple(vpp_name), std::forward_as_tuple());

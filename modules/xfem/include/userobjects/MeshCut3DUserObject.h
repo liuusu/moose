@@ -50,21 +50,7 @@ public:
                                      std::vector<Xfem::CutFace> & cut_faces,
                                      Real time) const override;
 
-//  virtual const VectorPostprocessorValue &
-//                                     getVectorPostprocessorValue(const std::string & name, const std::string & vector_name) override;
-//  virtual const VectorPostprocessorValue &
-//                                     getVectorPostprocessorValueByName(const VectorPostprocessorName & name,
-//                                                                       const std::string & vector_name) override;
-//  virtual const VectorPostprocessorValue & getVectorPostprocessorValue(
-//                                         const std::string & name, const std::string & vector_name, bool use_broadcast) override;
-//  virtual const VectorPostprocessorValue &
-//                                     getVectorPostprocessorValueByName(const VectorPostprocessorName & name,
-//                                                                       const std::string & vector_name,
-//                                                                       bool use_broadcast) override;
-
 protected:
-//  std::set<std::string> _depend_vars;
-
   /// The cutter mesh
   std::unique_ptr<MeshBase> _cut_mesh;
 
@@ -74,6 +60,9 @@ protected:
 
   /// The structural mesh
   MooseMesh & _mesh;
+
+  /// The type of mesh growth
+  std::string _growth_type;
 
   /// The structural mesh must be 3D only
   const unsigned int _elem_dim = 3;
@@ -217,7 +206,7 @@ protected:
   /**
     Parsed functions of front growth
    */
-  const Function & _func_x;
-  const Function & _func_y;
-  const Function & _func_z;
+  const Function * _func_x;
+  const Function * _func_y;
+  const Function * _func_z;
 };

@@ -13,9 +13,9 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 9
-  ny = 9
-  nz = 9
+  nx = 5
+  ny = 5
+  nz = 5
   xmin = 0.0
   xmax = 5.0
   ymin = 0.0
@@ -28,9 +28,10 @@
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack_incpenny3c.xda
-    size_control = 0.3
+    mesh_file = mesh_edge_crack3.xda
+    size_control = 0.85
     n_step_growth = 1
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -40,15 +41,15 @@
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value =0.57735*(x-0)+0.5774*(z-2.5)
+    value = x-1.0
   [../]
   [./growth_func_y]
     type = ParsedFunction
-    value =0*(x-0)-0.7071*(z-2.5)
+    value = 0
   [../]
   [./growth_func_z]
     type = ParsedFunction
-    value =-0.8165*(x-0)+0.4082*(z-2.5)
+    value = (z-2.5)/2
   [../]
 []
 
@@ -210,7 +211,7 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 1.0
+  end_time = 2.0
   max_xfem_update = 1
 []
 

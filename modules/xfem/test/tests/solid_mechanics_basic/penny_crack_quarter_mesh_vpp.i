@@ -13,9 +13,9 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 13
-  ny = 13
-  nz = 13
+  nx = 5
+  ny = 5
+  nz = 5
   xmin = 0.0
   xmax = 5.0
   ymin = 0.0
@@ -28,27 +28,12 @@
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_edge_crack_incpenny2.xda
-    size_control = 0.2
+    mesh_file = mesh_penny_quarter.xda
+    size_control = 0.5
     n_step_growth = 1
-    function_x = growth_func_x
-    function_y = growth_func_y
-    function_z = growth_func_z
-  [../]
-[]
+    growth_type = 'aux_circle'
+    orientation = 'xz'
 
-[Functions]
-  [./growth_func_x]
-    type = ParsedFunction
-    value = x-0.0
-  [../]
-  [./growth_func_y]
-    type = ParsedFunction
-    value = y-2.5
-  [../]
-  [./growth_func_z]
-    type = ParsedFunction
-    value = z-2.5
   [../]
 []
 
@@ -80,6 +65,10 @@
   [../]
   [./SED]
    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./K_aux]
+    order = CONSTANT
     family = MONOMIAL
   [../]
 []
@@ -129,6 +118,11 @@
     execute_on = timestep_end
     block = 0
   [../]
+  [./K_aux]
+    type = FunctionAux
+    variable = K_aux
+    function = K_aux_func
+  [../]
 []
 
 [Functions]
@@ -136,8 +130,11 @@
     type = ConstantFunction
     value = 10
   [../]
+  [./K_aux_func]
+    type = ParsedFunction
+    value = '2.5-0.5*t'
+  [../]
 []
-
 
 [BCs]
   [./top_y]
@@ -146,23 +143,32 @@
     variable = disp_y
     function = top_trac_y
   [../]
-  [./bottom_x]
-    type = PresetBC
-    boundary = bottom
-    variable = disp_x
-    value = 0.0
-  [../]
   [./bottom_y]
     type = PresetBC
     boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
-  [./bottom_z]
+  [./left_x]
     type = PresetBC
-    boundary = bottom
+    boundary = left
+    variable = disp_x
+    value = 0.0
+  [../]
+  [./front_z]
+    type = PresetBC
+    boundary = back
     variable = disp_z
     value = 0.0
+  [../]
+[]
+
+[VectorPostprocessors]
+  [./point_sample]
+    type = PointValueSampler
+    variable = 'K_aux'
+    points = '3.0 3.0 1.0'
+    sort_by = x
   [../]
 []
 
@@ -210,7 +216,7 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 6.0
+  end_time = 4.0
   max_xfem_update = 1
 []
 
