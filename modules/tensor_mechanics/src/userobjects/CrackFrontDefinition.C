@@ -17,6 +17,7 @@
 #include "libmesh/mesh_tools.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/quadrature.h"
+#include "libmesh/point.h"
 
 registerMooseObject("TensorMechanicsApp", CrackFrontDefinition);
 
@@ -250,8 +251,39 @@ CrackFrontDefinition::~CrackFrontDefinition() {}
 void
 CrackFrontDefinition::execute()
 {
-  // Because J-Integral is based on original geometry, the crack front geometry
-  // is never updated, so everything that needs to happen is done in initialSetup()
+  std::cout << "CrackFrontDefinition::execute()" << std::endl;
+  // below is copied from CrackFrontDefinition::initialSetup()
+  // some lines were removed as they only affect initialsetup
+
+  if (_crack_front_points_provider != nullptr)
+    _crack_front_points =
+        _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
+
+  updateCrackFrontGeometry();
+
+  if (_q_function_rings)
+    createQFunctionRings();
+
+  if (_t_stress)
+  {
+    std::size_t num_crack_front_nodes = _ordered_crack_front_nodes.size();
+    for (std::size_t i = 0; i < num_crack_front_nodes; ++i)
+      _strain_along_front.push_back(-std::numeric_limits<Real>::max());
+  }
+
+  std::size_t num_crack_front_points = getNumCrackFrontPoints();
+  if (_q_function_type == "GEOMETRY")
+  {
+    if (!_treat_as_2d)
+      if (num_crack_front_points < 1)
+        mooseError("num_crack_front_points is not > 0");
+    for (std::size_t i = 0; i < num_crack_front_points; ++i)
+    {
+      bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
+      _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
+    }
+  }
+
   if (_t_stress == true && _treat_as_2d == false)
     calculateTangentialStrainAlongFront();
 }
@@ -1070,6 +1102,26 @@ CrackFrontDefinition::getCrackFrontPoint(const std::size_t point_index) const
   {
     mooseAssert(point_index < _crack_front_points.size(), "point_index out of range");
     return &_crack_front_points[point_index];
+  }
+}
+
+void
+CrackFrontDefinition::updateCrackFrontPoints(const std::size_t point_index, Point p)
+{
+  if (_geom_definition_method == CRACK_FRONT_NODES)
+    mooseError("Updating crack font points by the mesh cutter requires _geom_definition_method == CRACK_FRONT_POINTS");
+  else
+  {
+    Point p1(-0.5, 0.25, 0);
+    Point p2(-0.213, 0.193, 0);
+    Point p3(0.03, 0.03, 0);
+    Point p4(0.193, -0.213, 0);
+    Point p5(0.25, -0.5, 0);
+    _crack_front_points[0] = p1;
+    _crack_front_points[1] = p2;
+    _crack_front_points[2] = p3;
+    _crack_front_points[3] = p4;
+    _crack_front_points[4] = p5;
   }
 }
 

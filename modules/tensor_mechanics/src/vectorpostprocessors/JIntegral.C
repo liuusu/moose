@@ -224,6 +224,7 @@ JIntegral::finalize()
     else
       _position[i] = _crack_front_definition->getDistanceAlongFront(i);
   }
+  std::cout << "===== return x: " << _x[0] << _x[1] << _x[2] << std::endl;
 }
 
 void

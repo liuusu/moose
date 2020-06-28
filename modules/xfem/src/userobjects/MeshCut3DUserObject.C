@@ -28,12 +28,15 @@ MeshCut3DUserObject::validParams()
   params.addRequiredParam<MeshFileName>(
       "mesh_file",
       "Mesh file for the XFEM geometric cut; currently only the xda type is supported");
-  params.addRequiredParam<FunctionName>("function_x", "Growth function for x direction");
-  params.addRequiredParam<FunctionName>("function_y", "Growth function for y direction");
-  params.addRequiredParam<FunctionName>("function_z", "Growth function for z direction");
+  params.addRequiredParam<std::string>("growth_type","choose from function, self_similar");
+  params.addParam<FunctionName>("function_x", "Growth function for x direction");
+  params.addParam<FunctionName>("function_y", "Growth function for y direction");
+  params.addParam<FunctionName>("function_z", "Growth function for z direction");
+  params.addParam<FunctionName>("function_v", "Growth speed function");
   params.addParam<Real>(
       "size_control", 0, "Criterion for refining elements while growing the crack");
   params.addParam<unsigned int>("n_step_growth", 0, "Number of steps for crack growth");
+  params.addParam<std::vector<dof_id_type>>("crack_front_nodes", "Set of nodes to define crack front");
   params.addClassDescription("Creates a UserObject for a mesh cutter in 3D problems");
   return params;
 }
@@ -43,10 +46,12 @@ MeshCut3DUserObject::validParams()
 MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
   : GeometricCutUserObject(parameters),
     _mesh(_subproblem.mesh()),
+    _growth_type(getParam<std::string>("growth_type")),
     _n_step_growth(getParam<unsigned int>("n_step_growth")),
-    _func_x(getFunction("function_x")),
-    _func_y(getFunction("function_y")),
-    _func_z(getFunction("function_z"))
+    _func_x(parameters.isParamValid("function_x") ? &getFunction("function_x") : NULL),
+    _func_y(parameters.isParamValid("function_y") ? &getFunction("function_y") : NULL),
+    _func_z(parameters.isParamValid("function_z") ? &getFunction("function_z") : NULL),
+    _func_v(parameters.isParamValid("function_v") ? &getFunction("function_v") : NULL)
 {
   _grow = (_n_step_growth == 0 ? 0 : 1);
 
@@ -56,6 +61,19 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
       mooseError("Crack growth needs size control");
 
     _size_control = getParam<Real>("size_control");
+
+    // the three _func_ seem to be required right now.  But later they will become optional for some choices of _growth_method
+    if (_func_x == NULL || _func_y == NULL || _func_z == NULL)
+      mooseError("growth function is not specified for the Function Growth method");
+
+    if (isParamValid("crack_front_nodes"))
+      _crack_front_nodes = getParam<std::vector<dof_id_type>>("crack_front_nodes");
+
+      // 2019
+      std::cout << "crack_front_nodes: ";
+      for (std::vector<dof_id_type>::const_iterator i = _crack_front_nodes.begin(); i != _crack_front_nodes.end(); ++i)
+          std::cout << *i << " ";
+      std::cout << '\n';
   }
 
   // only the xda type is currently supported
@@ -88,18 +106,38 @@ MeshCut3DUserObject::initialSetup()
 void
 MeshCut3DUserObject::initialize()
 {
+  std::cout << "MeshCut3DUserObject::initialize()" << std::endl;
+  _timestep = _fe_problem.timeStep();
+
+  if (_timestep == 0)
+  {
+    std::remove("mesh_grow.out");
+    writeCutMesh();
+  }
+
+  std::cout << "current time step: " << _timestep << std::endl;
+
   if (_grow)
   {
     unsigned int timestep = _fe_problem.timeStep();
 
     if (timestep == 1)
+    {
       _last_step_initialized = 1;
+      _crack_front_definition = &_fe_problem.getUserObject<CrackFrontDefinition>("crackFrontDefinition");
+    }
 
     _stop = 0;
 
     if (timestep > 1 && timestep != _last_step_initialized)
     {
       _last_step_initialized = timestep;
+
+      //Point p;
+      //p(0) = 0;
+      //p(1) = 0;
+      //p(2) = 0;
+      //_crack_front_definition->updateCrackFrontPoint(1,p);
 
       for (unsigned int i = 0; i < _n_step_growth; ++i)
         findActiveBoundaryNodes();
@@ -707,9 +745,9 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       mooseAssert(this_node, "Node is NULL");
       Point & this_point = *this_node;
 
-      dir(0) = _func_x.value(0, this_point);
-      dir(1) = _func_y.value(0, this_point);
-      dir(2) = _func_z.value(0, this_point);
+      dir(0) = _func_x->value(0, this_point);
+      dir(1) = _func_y->value(0, this_point);
+      dir(2) = _func_z->value(0, this_point);
 
       temp.push_back(dir);
     }
@@ -724,6 +762,7 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
     _active_direction.push_back(temp);
   }
 
+  // normalize the directional vector
   Real maxl = 0;
 
   for (unsigned int i = 0; i < _active_direction.size(); ++i)
@@ -766,13 +805,30 @@ MeshCut3DUserObject::growFront()
 
       Point x;
       for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
-        x(k) = this_point(k) + dir(k) * _size_control;
+        if (_growth_type == "function")
+          x(k) = this_point(k) + dir(k) * _size_control;
+        else if (_growth_type == "self_similar")
+        {
+          // compute the average of a vpp over the crack front nodes in a self-similar growth problem
+          // the evaluation does not depend on time or location because the function is usually dependent on J or K only
+          // in the input file, _func_v is defined as the function of a variable computed by a PostProcessor VPPAverage
+          Real v_avr = _func_v->value(0, Point(0, 0, 0));
+          x(k) = this_point(k) + dir(k) * _size_control * v_avr;
+        }
 
       this_node = Node::build(x, _cut_mesh->n_nodes()).release();
       _cut_mesh->add_node(this_node);
 
       dof_id_type id = _cut_mesh->n_nodes() - 1;
       temp.push_back(id);
+
+      std::cout << "adding " << id << " based on " << _active_boundary[0][j] << std::endl;
+      auto it = std::find(_crack_front_nodes.begin(), _crack_front_nodes.end(), _active_boundary[0][j]);
+      if (it != _crack_front_nodes.end())
+      {
+        unsigned int pos = std::distance(_crack_front_nodes.begin(), it);
+        _crack_front_nodes[pos] = id;
+      }
     }
 
     _front.push_back(temp);
@@ -871,6 +927,8 @@ MeshCut3DUserObject::findFrontIntersection()
 
         auto it = _front[i].begin();
         _front[i].insert(it, n);
+
+        _crack_front_nodes[_crack_front_nodes.size()-1] = n;
       }
 
       if (length2.size() != 0 && do_inter2)
@@ -887,6 +945,8 @@ MeshCut3DUserObject::findFrontIntersection()
         auto it = _front[i].begin();
         unsigned int m = _front[i].size();
         _front[i].insert(it + m, n);
+
+        _crack_front_nodes[0] = n;
       }
     }
   }
@@ -895,6 +955,14 @@ MeshCut3DUserObject::findFrontIntersection()
 void
 MeshCut3DUserObject::refineFront()
 {
+  for (unsigned int i = 0; i < _crack_front_nodes.size(); ++i)
+  {
+    Node * this_node = _cut_mesh->node_ptr(_crack_front_nodes[i]);
+    mooseAssert(this_node, "Node is NULL");
+    Point & this_point = *this_node;
+    std::cout << this_point(0) << " " << this_point(1) << " " << this_point(2) << " " << _crack_front_nodes[i] << "=================" << std::endl;
+  }
+
   std::vector<std::vector<dof_id_type>> new_front(_front.begin(), _front.end());
 
   for (unsigned int ifront = 0; ifront < _front.size(); ++ifront)
@@ -1081,7 +1149,54 @@ MeshCut3DUserObject::joinBoundary()
 }
 
 const std::vector<Point>
-MeshCut3DUserObject::getCrackFrontPoints(unsigned int /*num_crack_front_points*/) const
+MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points) const
 {
-  mooseError("getCrackFrontPoints() is not implemented for this object.");
+  std::vector<Point> crack_front_points(number_crack_front_points);
+  std::cout << "=== getCrackFrontPoints" << std::endl;
+  std::cout << number_crack_front_points << std::endl;
+  if (number_crack_front_points != _crack_front_nodes.size())
+    mooseError("number_points_from_provider does not match the number of nodes given in crack_front_nodes!");
+  for (unsigned int i = 0; i < number_crack_front_points; ++i)
+  {
+    dof_id_type id = _crack_front_nodes[i];
+    Node * this_node = _cut_mesh->node_ptr(id);
+    mooseAssert(this_node, "Node is NULL");
+    Point & this_point = *this_node;
+    crack_front_points[i] = this_point;
+    std::cout << crack_front_points[i](0) << ", " << crack_front_points[i](1) << ", " << crack_front_points[i](2) << ", " << std::endl;
+  }
+  return crack_front_points;
+}
+
+void
+MeshCut3DUserObject::writeCutMesh()
+{
+  // writing mesh to output file for visualization
+  std::ofstream myfile;
+  myfile.open("mesh_grow.out", std::fstream::app);
+  myfile << _cut_mesh->n_nodes() << std::endl;
+  myfile << _cut_mesh->n_elem() << std::endl;
+  auto node_begin = _cut_mesh->nodes_begin();
+  auto node_end = _cut_mesh->nodes_end();
+  auto node_it = node_begin;
+  for (; node_it != node_end; ++node_it)
+  {
+    Node * cutnode = *node_it;
+    Point & this_point = *cutnode;
+    myfile << this_point(0) << " " << this_point(1) << " " << this_point(2) << " " << std::endl;
+  }
+  auto elem_begin2 = _cut_mesh->elements_begin();
+  auto elem_end2 = _cut_mesh->elements_end();
+  auto elem_it2 = elem_begin2;
+  for (; elem_it2 != elem_end2; ++elem_it2)
+  {
+    Elem * cut_elem = *elem_it2;
+    std::vector<unsigned int> tri;
+    for (unsigned int i = 0; i < cut_elem->n_nodes(); ++i)
+    {
+      tri.push_back(cut_elem->node_ptr(i)->id());
+    }
+    myfile << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
+  }
+  myfile.close();
 }

@@ -56,6 +56,11 @@ public:
   const Point * getCrackFrontPoint(const std::size_t point_index) const;
 
   /**
+   * UPdated the crack front
+   */
+  void updateCrackFrontPoints(const std::size_t point_index, Point p);
+
+  /**
    * Get the vector tangent to the crack front at a specified position
    * @param point_index Index of the point
    * @return tangent vector

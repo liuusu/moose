@@ -36,7 +36,9 @@ GeometricCutUserObject::validParams()
 }
 
 GeometricCutUserObject::GeometricCutUserObject(const InputParameters & parameters)
-  : CrackFrontPointsProvider(parameters), _heal_always(getParam<bool>("heal_always"))
+: CrackFrontPointsProvider(parameters),
+  VectorPostprocessorInterface(this),
+  _heal_always(getParam<bool>("heal_always"))
 {
   _xfem = MooseSharedNamespace::dynamic_pointer_cast<XFEM>(_fe_problem.getXFEM());
   if (_xfem == nullptr)
@@ -58,6 +60,18 @@ GeometricCutUserObject::GeometricCutUserObject(const InputParameters & parameter
 void
 GeometricCutUserObject::initialize()
 {
+  if (_fe_problem.timeStep() > 1)
+  {
+    std::cout << "++++++++++++++++++++++++++++" << std::endl;
+    const VectorPostprocessorValue & vpp_values = getVectorPostprocessorValueByName("J_1","J_1");
+    Real J_aux1 = vpp_values[0];
+    Real J_aux2 = vpp_values[1];
+    Real J_aux3 = vpp_values[2];
+    Real J_aux4 = vpp_values[3];
+    Real J_aux5 = vpp_values[4];
+    std::cout << vpp_values.size() << std::endl;
+    std::cout << J_aux1 << ", " << J_aux2 << ", " << J_aux3 << ", " << J_aux4 << ", " << J_aux5 << std::endl;
+  }
   _marked_elems_2d.clear();
   _marked_elems_3d.clear();
 }

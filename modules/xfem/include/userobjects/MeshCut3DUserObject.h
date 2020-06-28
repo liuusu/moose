@@ -10,6 +10,7 @@
 #pragma once
 
 #include "GeometricCutUserObject.h"
+#include "CrackFrontDefinition.h"
 
 #include <array>
 
@@ -58,6 +59,11 @@ protected:
   /// The structural mesh
   MooseMesh & _mesh;
 
+  CrackFrontDefinition * _crack_front_definition;
+
+  /// The type of mesh growth
+  std::string _growth_type;
+
   /// The structural mesh must be 3D only
   const unsigned int _elem_dim = 3;
 
@@ -76,6 +82,8 @@ protected:
 
   /// Boundary nodes of the cutter mesh
   std::vector<dof_id_type> _boundary;
+
+  std::vector<dof_id_type> _crack_front_nodes;
 
   /// Edges at the boundary
   std::set<Xfem::CutEdge> _boundary_edges;
@@ -198,7 +206,10 @@ protected:
   /**
     Parsed functions of front growth
    */
-  const Function & _func_x;
-  const Function & _func_y;
-  const Function & _func_z;
+   const Function * _func_x;
+   const Function * _func_y;
+   const Function * _func_z;
+   const Function * _func_v;
+
+   void writeCutMesh();
 };
