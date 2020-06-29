@@ -106,7 +106,6 @@ MeshCut3DUserObject::initialSetup()
 void
 MeshCut3DUserObject::initialize()
 {
-  std::cout << "MeshCut3DUserObject::initialize()" << std::endl;
   unsigned int timestep = _fe_problem.timeStep();
 
   if (timestep == 0)
@@ -957,13 +956,13 @@ MeshCut3DUserObject::findFrontIntersection()
 void
 MeshCut3DUserObject::refineFront()
 {
-  for (unsigned int i = 0; i < _crack_front_nodes.size(); ++i)
-  {
-    Node * this_node = _cut_mesh->node_ptr(_crack_front_nodes[i]);
-    mooseAssert(this_node, "Node is NULL");
-    Point & this_point = *this_node;
-    std::cout << this_point(0) << " " << this_point(1) << " " << this_point(2) << " " << _crack_front_nodes[i] << "=================" << std::endl;
-  }
+  //for (unsigned int i = 0; i < _crack_front_nodes.size(); ++i)
+  //{
+  //  Node * this_node = _cut_mesh->node_ptr(_crack_front_nodes[i]);
+  //  mooseAssert(this_node, "Node is NULL");
+  //  Point & this_point = *this_node;
+  //  std::cout << this_point(0) << " " << this_point(1) << " " << this_point(2) << " " << _crack_front_nodes[i] << std::endl;
+  //}
 
   std::vector<std::vector<dof_id_type>> new_front(_front.begin(), _front.end());
 
@@ -1154,8 +1153,8 @@ const std::vector<Point>
 MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points) const
 {
   std::vector<Point> crack_front_points(number_crack_front_points);
-  std::cout << "=== getCrackFrontPoints" << std::endl;
-  std::cout << number_crack_front_points << std::endl;
+  //std::cout << "getCrackFrontPoints:" << std::endl;
+  //std::cout << number_crack_front_points << std::endl;
   if (number_crack_front_points != _crack_front_nodes.size())
     mooseError("number_points_from_provider does not match the number of nodes given in crack_front_nodes!");
   for (unsigned int i = 0; i < number_crack_front_points; ++i)
@@ -1165,7 +1164,7 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
     mooseAssert(this_node, "Node is NULL");
     Point & this_point = *this_node;
     crack_front_points[i] = this_point;
-    std::cout << crack_front_points[i](0) << ", " << crack_front_points[i](1) << ", " << crack_front_points[i](2) << ", " << std::endl;
+  //  std::cout << crack_front_points[i](0) << ", " << crack_front_points[i](1) << ", " << crack_front_points[i](2) << ", " << std::endl;
   }
   return crack_front_points;
 }

@@ -250,8 +250,8 @@ CrackFrontDefinition::~CrackFrontDefinition() {}
 void
 CrackFrontDefinition::execute()
 {
-  std::cout << "CrackFrontDefinition::execute()" << std::endl;
   // below is copied from CrackFrontDefinition::initialSetup()
+  // the purpose is to prepare for J-integral calculations using updated crack front
   // some lines were removed as they only affect initialsetup
 
   if (_crack_front_points_provider != nullptr)
