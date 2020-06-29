@@ -1105,26 +1105,6 @@ CrackFrontDefinition::getCrackFrontPoint(const std::size_t point_index) const
   }
 }
 
-void
-CrackFrontDefinition::updateCrackFrontPoints()
-{
-  if (_geom_definition_method == CRACK_GEOM_DEFINITION::CRACK_FRONT_NODES)
-    mooseError("Updating crack font points by the mesh cutter requires _geom_definition_method == CRACK_GEOM_DEFINITION::CRACK_FRONT_POINTS");
-  else
-  {
-    Point p1(-0.5, 0.25, 0);
-    Point p2(-0.213, 0.193, 0);
-    Point p3(0.03, 0.03, 0);
-    Point p4(0.193, -0.213, 0);
-    Point p5(0.25, -0.5, 0);
-    _crack_front_points[0] = p1;
-    _crack_front_points[1] = p2;
-    _crack_front_points[2] = p3;
-    _crack_front_points[3] = p4;
-    _crack_front_points[4] = p5;
-  }
-}
-
 const RealVectorValue &
 CrackFrontDefinition::getCrackFrontTangent(const std::size_t point_index) const
 {
