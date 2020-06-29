@@ -153,6 +153,8 @@ MeshCut3DUserObject::initialize()
         triangulation();
         joinBoundary();
       }
+
+      writeCutMesh();
     }
   }
 }
