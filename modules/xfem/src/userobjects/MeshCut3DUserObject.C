@@ -117,7 +117,6 @@ MeshCut3DUserObject::initialize()
     if (timestep == 1)
     {
       _last_step_initialized = 1;
-      _crack_front_definition = &_fe_problem.getUserObject<CrackFrontDefinition>("crackFrontDefinition");
     }
 
     _stop = 0;

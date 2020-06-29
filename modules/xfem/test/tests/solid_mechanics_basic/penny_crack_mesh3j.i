@@ -84,9 +84,7 @@
 
 [DomainIntegral]
   integrals = 'Jintegral'
-  disp_x = disp_x
-  disp_y = disp_y
-  disp_z = disp_z
+  displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
   number_points_from_provider = 5
   crack_end_direction_method = CrackDirectionVector
@@ -173,31 +171,31 @@
     function = top_trac_z
   [../]
   [./bottom_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 1
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 1
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
-    type = PresetBC
+    type = DirichletBC
     boundary = 1
     variable = disp_z
     value = 0.0
   [../]
   [./sym_y]
-    type = PresetBC
+    type = DirichletBC
     boundary = 3
     variable = disp_y
     value = 0.0
   [../]
   [./sym_x]
-    type = PresetBC
+    type = DirichletBC
     boundary = 4
     variable = disp_x
     value = 0.0

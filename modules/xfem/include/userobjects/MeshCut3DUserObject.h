@@ -59,8 +59,6 @@ protected:
   /// The structural mesh
   MooseMesh & _mesh;
 
-  CrackFrontDefinition * _crack_front_definition;
-
   /// The type of mesh growth
   std::string _growth_type;
 
