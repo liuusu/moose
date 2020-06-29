@@ -107,15 +107,15 @@ void
 MeshCut3DUserObject::initialize()
 {
   std::cout << "MeshCut3DUserObject::initialize()" << std::endl;
-  _timestep = _fe_problem.timeStep();
+  unsigned int timestep = _fe_problem.timeStep();
 
-  if (_timestep == 0)
+  if (timestep == 0)
   {
     std::remove("mesh_grow.out");
     writeCutMesh();
   }
 
-  std::cout << "current time step: " << _timestep << std::endl;
+  std::cout << "current time step: " << timestep << std::endl;
 
   if (_grow)
   {

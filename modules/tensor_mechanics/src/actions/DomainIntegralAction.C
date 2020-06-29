@@ -346,7 +346,6 @@ DomainIntegralAction::act()
     params.set<MooseEnum>("q_function_type") = _q_function_type;
 
     _problem->addUserObject(uo_type_name, uo_name, params);
-    std::cout << "=== addUserObject: " << uo_name << std::endl;
   }
   else if (_current_task == "add_aux_variable" && _output_q)
   {
@@ -597,7 +596,6 @@ DomainIntegralAction::act()
         params.set<MooseEnum>("q_function_type") = _q_function_type;
 
         std::string vpp_name = vpp_base_name + "_" + Moose::stringify(_ring_vec[ring_index]);
-        std::cout << vpp_name << " vpp_name" << std::endl;
         _problem->addVectorPostprocessor(vpp_type_name, vpp_name, params);
       }
     }

@@ -75,7 +75,7 @@ const std::vector<Point>
 CircleCutUserObject::getCrackFrontPoints(unsigned int number_crack_front_points) const
 {
   std::vector<Point> crack_front_points(number_crack_front_points);
-  std::cout << "=== getCrackFrontPoints" << std::endl;
+  std::cout << "getCrackFrontPoints:" << std::endl;
   std::cout << number_crack_front_points << std::endl;
   Point v1 = _vertices[0] - _center;
   Point v2 = _normal.cross(v1);

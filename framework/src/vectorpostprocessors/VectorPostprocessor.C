@@ -61,7 +61,6 @@ VectorPostprocessor::VectorPostprocessor(const InputParameters & parameters)
     _is_distributed(_parallel_type == "DISTRIBUTED"),
     _is_broadcast(_is_distributed || !parameters.get<bool>("_auto_broadcast"))
 {
-  std::cout << _vpp_name << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
 }
 
 VectorPostprocessorValue &
@@ -73,7 +72,6 @@ VectorPostprocessor::getVector(const std::string & vector_name)
 VectorPostprocessorValue &
 VectorPostprocessor::declareVector(const std::string & vector_name)
 {
-  std::cout << vector_name << "===============================" << std::endl;
   if (_vpp_tid)
     return _thread_local_vectors.emplace(vector_name, VectorPostprocessorValue()).first->second;
   else

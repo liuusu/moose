@@ -192,9 +192,6 @@ protected:
   /// Heal the mesh
   bool _heal_always;
 
-  unsigned int _timestep;
-  unsigned int _last_timestep;
-
   /// Time step information needed to advance a 3D crack only at the real beginning of a time step
   unsigned int _last_step_initialized;
 
