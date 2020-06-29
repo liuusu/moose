@@ -11,7 +11,6 @@
 
 // MOOSE includes
 #include "CrackFrontPointsProvider.h"
-#include "VectorPostprocessorInterface.h"
 
 #include "libmesh/libmesh_common.h"
 #include "libmesh/libmesh.h" // libMesh::invalid_uint
@@ -100,8 +99,7 @@ struct GeomMarkedElemInfo3D
 
 // Forward declarations
 
-class GeometricCutUserObject : public CrackFrontPointsProvider,
-                               protected VectorPostprocessorInterface
+class GeometricCutUserObject : public CrackFrontPointsProvider
 {
 public:
   /**
@@ -193,7 +191,7 @@ protected:
 
   /// Heal the mesh
   bool _heal_always;
-  
+
   unsigned int _timestep;
   unsigned int _last_timestep;
 

@@ -37,7 +37,6 @@ GeometricCutUserObject::validParams()
 
 GeometricCutUserObject::GeometricCutUserObject(const InputParameters & parameters)
 : CrackFrontPointsProvider(parameters),
-  VectorPostprocessorInterface(this),
   _heal_always(getParam<bool>("heal_always"))
 {
   _xfem = MooseSharedNamespace::dynamic_pointer_cast<XFEM>(_fe_problem.getXFEM());

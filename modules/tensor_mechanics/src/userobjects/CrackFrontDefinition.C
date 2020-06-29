@@ -1106,10 +1106,10 @@ CrackFrontDefinition::getCrackFrontPoint(const std::size_t point_index) const
 }
 
 void
-CrackFrontDefinition::updateCrackFrontPoints(const std::size_t point_index, Point p)
+CrackFrontDefinition::updateCrackFrontPoints()
 {
-  if (_geom_definition_method == CRACK_FRONT_NODES)
-    mooseError("Updating crack font points by the mesh cutter requires _geom_definition_method == CRACK_FRONT_POINTS");
+  if (_geom_definition_method == CRACK_GEOM_DEFINITION::CRACK_FRONT_NODES)
+    mooseError("Updating crack font points by the mesh cutter requires _geom_definition_method == CRACK_GEOM_DEFINITION::CRACK_FRONT_POINTS");
   else
   {
     Point p1(-0.5, 0.25, 0);
