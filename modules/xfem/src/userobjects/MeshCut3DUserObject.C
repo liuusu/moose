@@ -68,12 +68,6 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 
     if (isParamValid("crack_front_nodes"))
       _crack_front_nodes = getParam<std::vector<dof_id_type>>("crack_front_nodes");
-
-      // 2019
-      std::cout << "crack_front_nodes: ";
-      for (std::vector<dof_id_type>::const_iterator i = _crack_front_nodes.begin(); i != _crack_front_nodes.end(); ++i)
-          std::cout << *i << " ";
-      std::cout << '\n';
   }
 
   // only the xda type is currently supported
@@ -131,12 +125,6 @@ MeshCut3DUserObject::initialize()
     if (timestep > 1 && timestep != _last_step_initialized)
     {
       _last_step_initialized = timestep;
-
-      //Point p;
-      //p(0) = 0;
-      //p(1) = 0;
-      //p(2) = 0;
-      //_crack_front_definition->updateCrackFrontPoint(1,p);
 
       for (unsigned int i = 0; i < _n_step_growth; ++i)
         findActiveBoundaryNodes();
