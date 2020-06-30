@@ -10,7 +10,6 @@
 #pragma once
 
 #include "GeometricCutUserObject.h"
-#include "CrackFrontDefinition.h"
 
 #include <array>
 
