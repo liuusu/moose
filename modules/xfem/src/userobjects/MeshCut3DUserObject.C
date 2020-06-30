@@ -115,9 +115,7 @@ MeshCut3DUserObject::initialize()
     unsigned int timestep = _fe_problem.timeStep();
 
     if (timestep == 1)
-    {
       _last_step_initialized = 1;
-    }
 
     _stop = 0;
 
@@ -811,11 +809,15 @@ MeshCut3DUserObject::growFront()
       temp.push_back(id);
 
       std::cout << "adding " << id << " based on " << _active_boundary[0][j] << std::endl;
-      auto it = std::find(_crack_front_nodes.begin(), _crack_front_nodes.end(), _active_boundary[0][j]);
-      if (it != _crack_front_nodes.end())
+
+      if (_growth_type == "self_similar")
       {
-        unsigned int pos = std::distance(_crack_front_nodes.begin(), it);
-        _crack_front_nodes[pos] = id;
+        auto it = std::find(_crack_front_nodes.begin(), _crack_front_nodes.end(), _active_boundary[0][j]);
+        if (it != _crack_front_nodes.end())
+        {
+          unsigned int pos = std::distance(_crack_front_nodes.begin(), it);
+          _crack_front_nodes[pos] = id;
+        }
       }
     }
 
@@ -916,7 +918,8 @@ MeshCut3DUserObject::findFrontIntersection()
         auto it = _front[i].begin();
         _front[i].insert(it, n);
 
-        _crack_front_nodes[_crack_front_nodes.size()-1] = n;
+        if (_growth_type == "self_similar")
+          _crack_front_nodes[_crack_front_nodes.size()-1] = n;
       }
 
       if (length2.size() != 0 && do_inter2)
@@ -934,7 +937,8 @@ MeshCut3DUserObject::findFrontIntersection()
         unsigned int m = _front[i].size();
         _front[i].insert(it + m, n);
 
-        _crack_front_nodes[0] = n;
+        if (_growth_type == "self_similar")
+          _crack_front_nodes[0] = n;
       }
     }
   }
