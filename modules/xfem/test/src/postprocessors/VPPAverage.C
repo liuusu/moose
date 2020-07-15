@@ -33,7 +33,7 @@ VPPAverage::VPPAverage(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     _vpp_type(getParam<std::string>("vpp_type")),
     _vpp_name(getParam<std::string>("vpp_name")),
-    _cutter(&_fe_problem.getUserObject<MeshCut3DUserObject>("cut_mesh"))
+    _cutter(&_fe_problem.getUserObject<MeshCut3DUserObject>("cut_mesh")) // should be deleted
 {
 }
 
