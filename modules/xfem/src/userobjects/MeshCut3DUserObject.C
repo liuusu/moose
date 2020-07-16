@@ -1168,8 +1168,8 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
   std::vector<Point> crack_front_points(number_crack_front_points);
   //std::cout << "getCrackFrontPoints:" << std::endl;
   //std::cout << number_crack_front_points << std::endl;
-  if (number_crack_front_points != _crack_front_nodes.size())
-    mooseError("number_points_from_provider does not match the number of nodes given in crack_front_nodes!");
+//  if (number_crack_front_points != _crack_front_nodes.size())
+//    mooseError("number_points_from_provider does not match the number of nodes given in crack_front_nodes!");
   for (unsigned int i = 0; i < number_crack_front_points; ++i)
   {
     dof_id_type id = _crack_front_nodes[i];
@@ -1179,6 +1179,8 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
     crack_front_points[i] = this_point;
   //  std::cout << crack_front_points[i](0) << ", " << crack_front_points[i](1) << ", " << crack_front_points[i](2) << ", " << std::endl;
   }
+  _crack_front_definition->changeCrackFrontNodeNumber(6);
+  crack_front_points[5] = crack_front_points[4];
   return crack_front_points;
 }
 

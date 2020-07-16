@@ -41,6 +41,8 @@ public:
   virtual void finalize() override;
   virtual void execute() override;
 
+  void changeCrackFrontNodeNumber(const std::size_t num_points);
+
   /**
    * Get the node pointer for a specified node on the crack front
    * @param node_index Index of the node

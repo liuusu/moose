@@ -1081,6 +1081,12 @@ CrackFrontDefinition::calculateCrackFrontDirection(const Point & crack_front_poi
   return crack_dir;
 }
 
+void
+CrackFrontDefinition::changeCrackFrontNodeNumber(std::size_t num_points)
+{
+  _num_points_from_provider = num_points;
+}
+
 const Node *
 CrackFrontDefinition::getCrackFrontNodePtr(const std::size_t node_index) const
 {
