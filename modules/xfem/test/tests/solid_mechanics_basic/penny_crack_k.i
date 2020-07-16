@@ -153,12 +153,6 @@
   [../]
 []
 
-[Postprocessors]
-  [./growth_dir]
-    type = VPPGrowthDir
-  [../]
-[]
-
 [BCs]
   [./top_z]
     type = FunctionNeumannBC

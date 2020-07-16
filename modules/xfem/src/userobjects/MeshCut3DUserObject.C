@@ -88,6 +88,7 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 void
 MeshCut3DUserObject::initialSetup()
 {
+  _crack_front_definition = &_fe_problem.getUserObject<CrackFrontDefinition>("crackFrontDefinition");
   if (_grow)
   {
     findBoundaryNodes();
@@ -770,6 +771,26 @@ MeshCut3DUserObject::growFront()
 {
   _front.clear();
 
+  // get KI and KII at front nodes
+  const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
+  const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
+  mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
+  unsigned int nfront = k1.size();
+  // loop over front nodes in VPPs
+  for (unsigned int i = 0; i < nfront; ++i)
+  {
+    // calculate theta
+    Real theta = 2 * atan((k1[i]-sqrt(k1[i]*k1[i]+k2[i]*k2[i])) / (4*k2[i]));
+    RealVectorValue dir;
+    RealVectorValue dir2;
+    dir(0) = cos(theta);
+    dir(1) = sin(theta);
+    dir(2) = 0;
+    dir2 = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir,i);
+    std::cout << theta/3.14*180 << "," << k1[i] << "," << k2[i] << std::endl;
+    std::cout << dir2(0) << "," << dir2(1) << "," << dir2(2) << "=========" << std::endl;
+  }
+
   for (unsigned int i = 0; i < _active_boundary.size(); ++i)
   {
     std::vector<dof_id_type> temp;
@@ -800,6 +821,7 @@ MeshCut3DUserObject::growFront()
           // in the input file, _func_v is defined as the function of a variable computed by a PostProcessor VPPAverage
           Real v_avr = _func_v->value(0, Point(0, 0, 0));
           x(k) = this_point(k) + dir(k) * _size_control * v_avr;
+          std::cout << dir(0) << "," << dir(1) << "," << dir(2) << "---------" << std::endl;
         }
 
       this_node = Node::build(x, _cut_mesh->n_nodes()).release();

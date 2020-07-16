@@ -10,6 +10,7 @@
 #pragma once
 
 #include "GeometricCutUserObject.h"
+#include "CrackFrontDefinition.h"
 
 #include <array>
 
@@ -57,6 +58,9 @@ protected:
 
   /// The structural mesh
   MooseMesh & _mesh;
+
+  /// The crack front definition
+  CrackFrontDefinition * _crack_front_definition;
 
   /// The type of mesh growth
   std::string _growth_type;
