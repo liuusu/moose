@@ -780,6 +780,7 @@ MeshCut3DUserObject::growFront()
   for (unsigned int i = 0; i < nfront; ++i)
   {
     // calculate theta
+    std::cout << k1[i] << ',' << k2[i] << "***************" << std::endl;
     Real theta = 2 * atan((k1[i]-sqrt(k1[i]*k1[i]+k2[i]*k2[i])) / (4*k2[i]));
     RealVectorValue dir;
     RealVectorValue dir2;

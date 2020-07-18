@@ -93,6 +93,9 @@ JIntegral::initialize()
   else
     num_pts = _crack_front_definition->getNumCrackFrontPoints();
 
+//  std::cout << num_pts << std::endl;
+//  std::cout << "======================" << std::endl;
+
   _x.assign(num_pts, 0.0);
   _y.assign(num_pts, 0.0);
   _z.assign(num_pts, 0.0);
@@ -208,6 +211,10 @@ JIntegral::finalize()
   {
     if (_has_symmetry_plane)
       _j_integral[i] *= 2.0;
+
+//    std::cout << _j_integral[i] << std::endl;
+//    std::cout << "----------------------" << std::endl;
+//    _j_integral[5] = _j_integral[4];
 
     Real sign = (_j_integral[i] > 0.0) ? 1.0 : ((_j_integral[i] < 0.0) ? -1.0 : 0.0);
     if (_convert_J_to_K)

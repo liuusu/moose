@@ -324,6 +324,10 @@ InteractionIntegralSM::finalize()
                                 i); // BWS TODO: this might not be parallel consistent
 
     _interaction_integral[i] *= _K_factor;
+
+//    _interaction_integral[5] = _interaction_integral[4];
+//    std::cout << _interaction_integral[i] << std::endl;
+//    std::cout << "======================" << std::endl;
   }
 }
 
