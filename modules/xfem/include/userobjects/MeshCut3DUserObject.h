@@ -84,6 +84,15 @@ protected:
   /// Boundary nodes of the cutter mesh
   std::vector<dof_id_type> _boundary;
 
+  /// front nodes that are grown from the crack front definition defined in the input
+  /// therefore, they are (1) in the same order as defined in the input and (2) the number of nodes does not change
+  std::vector<dof_id_type> _tracked_crack_front_nodes;
+
+  /// updated crack front definition
+  /// they are in the same order as defined in the input but the number of nodes may increase
+  /// its difference from _front is that: _front does not necessarily follow the order of crack front definition
+  /// therefore, _crack_front_nodes is generated from _front with the order of crack front definition
+  /// limitation: this approach does not currently support the growth of one crack front into two
   std::vector<dof_id_type> _crack_front_nodes;
 
   /// Edges at the boundary
@@ -213,4 +222,5 @@ protected:
    const Function * _func_v;
 
    void writeCutMesh();
+   void writeVector(std::vector<dof_id_type> & vec, std::string name);
 };
