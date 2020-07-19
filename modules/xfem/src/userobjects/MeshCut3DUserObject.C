@@ -775,7 +775,7 @@ MeshCut3DUserObject::growFront()
   // get KI and KII at front nodes
   const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
   const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
-  mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
+  mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size"); 
   unsigned int nfront = k1.size();
   // loop over front nodes in VPPs
   for (unsigned int i = 0; i < nfront; ++i)
