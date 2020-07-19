@@ -93,9 +93,6 @@ JIntegral::initialize()
   else
     num_pts = _crack_front_definition->getNumCrackFrontPoints();
 
-//  std::cout << num_pts << std::endl;
-//  std::cout << "======================" << std::endl;
-
   _x.assign(num_pts, 0.0);
   _y.assign(num_pts, 0.0);
   _z.assign(num_pts, 0.0);
@@ -148,6 +145,13 @@ JIntegral::computeQpIntegral(const std::size_t crack_front_point_index,
 
   Real etot = -eq + eq_thermal;
 
+  if (crack_front_point_index==14 && _qp==0)
+  {
+    //std::cout << _qp  << "  " << eq_thermal << "  " << crack_direction << "  " << grad_of_scalar_q << "  " << eq << "  " << std::endl;
+    //std::cout << _Eshelby_tensor[_qp] << std::endl;
+    //std::cout << grad_of_vector_q << std::endl;
+  }
+
   return etot / q_avg_seg;
 }
 
@@ -198,8 +202,17 @@ JIntegral::execute()
 
       _j_integral[icfp] +=
           _JxW[_qp] * _coord[_qp] * computeQpIntegral(icfp, scalar_q, grad_of_scalar_q);
+
+      if (icfp==0)
+      {
+        std::cout << (*_phi_curr_elem)[0][0] << "  " << _q_curr_elem[0] << "  " << (*_dphi_curr_elem)[0][_qp](0) << std::endl;
+        std::cout << _JxW[_qp] << "  " << _coord[_qp] << "  " << scalar_q << "  " << grad_of_scalar_q << "  " << computeQpIntegral(icfp, scalar_q, grad_of_scalar_q) << std::endl;
+      }
     }
   }
+  std::cout << _j_integral[0] << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
 }
 
 void
@@ -211,10 +224,6 @@ JIntegral::finalize()
   {
     if (_has_symmetry_plane)
       _j_integral[i] *= 2.0;
-
-//    std::cout << _j_integral[i] << std::endl;
-//    std::cout << "----------------------" << std::endl;
-//    _j_integral[5] = _j_integral[4];
 
     Real sign = (_j_integral[i] > 0.0) ? 1.0 : ((_j_integral[i] < 0.0) ? -1.0 : 0.0);
     if (_convert_J_to_K)

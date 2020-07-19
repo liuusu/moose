@@ -773,9 +773,10 @@ MeshCut3DUserObject::growFront()
   _front.clear();
 
   // get KI and KII at front nodes
+  const VectorPostprocessorValue & j = getVectorPostprocessorValueByName("J_1","J_1");
   const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
   const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
-  mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size"); 
+  mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
   unsigned int nfront = k1.size();
   // loop over front nodes in VPPs
   for (unsigned int i = 0; i < nfront; ++i)
@@ -788,7 +789,7 @@ MeshCut3DUserObject::growFront()
     dir(1) = sin(theta);
     dir(2) = 0;
     dir2 = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir,i);
-    std::cout << "nfront, i, theta, k1, k2, new dir(3): " << nfront << "," << i+1 << "," << theta/3.14*180 << "," << k1[i] << "," << k2[i] << "," << dir2(0) << "," << dir2(1) << "," << dir2(2) << std::endl;
+    std::cout << "nfront, i, theta, j, k1, k2, new dir(3): " << nfront << "," << i+1 << "," << theta/3.14*180 << ",   " << j[i] << ",   " << k1[i] << "," << k2[i] << ",   " << dir2(0) << "," << dir2(1) << "," << dir2(2) << std::endl;
   }
 
   for (unsigned int i = 0; i < _active_boundary.size(); ++i)
@@ -844,6 +845,7 @@ MeshCut3DUserObject::growFront()
     }
 
     _front.push_back(temp);
+
   }
 }
 
@@ -1194,7 +1196,57 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
     mooseAssert(this_node, "Node is NULL");
     Point & this_point = *this_node;
     crack_front_points[i] = this_point;
-  //  std::cout << crack_front_points[i](0) << ", " << crack_front_points[i](1) << ", " << crack_front_points[i](2) << ", " << std::endl;
+
+
+
+
+
+
+
+    std::cout << "======================" << std::endl;
+    std::cout << "======================" << std::endl;
+    std::cout << "======================" << std::endl;
+    std::cout << "======================" << std::endl;
+    std::cout << "======================" << std::endl;
+    if (_fe_problem.timeStep()==2)
+    {
+      crack_front_points[0](0) = -0.506313;
+      crack_front_points[1](0) = -0.44072;
+      crack_front_points[2](0) = -0.375126;
+      crack_front_points[3](0) = -0.312034;
+      crack_front_points[4](0) = -0.248941;
+      crack_front_points[5](0) = -0.195704;
+      crack_front_points[6](0) = -0.142467;
+      crack_front_points[7](0) = -0.08923;
+      crack_front_points[8](0) = -0.0359928;
+      crack_front_points[9](0) = -0.000420927;
+      crack_front_points[10](0)= 0.035151;
+      crack_front_points[11](0)= 0.0707229;
+      crack_front_points[12](0)= 0.106295;
+      crack_front_points[13](0)= 0.118786;
+      crack_front_points[14](0)= 0.131277;
+      crack_front_points[15](0)= 0.143887;
+      crack_front_points[16](0)= 0.156497;
+
+      crack_front_points[0](1) = 0.161311;
+      crack_front_points[1](1) = 0.146294;
+      crack_front_points[2](1) = 0.131277;
+      crack_front_points[3](1) = 0.118786;
+      crack_front_points[4](1) = 0.106295;
+      crack_front_points[5](1) = 0.0707229;
+      crack_front_points[6](1) = 0.035151;
+      crack_front_points[7](1) = -0.000420938;
+      crack_front_points[8](1) = -0.0359928;
+      crack_front_points[9](1) = -0.08923;
+      crack_front_points[10](1)= -0.142467;
+      crack_front_points[11](1)= -0.195704;
+      crack_front_points[12](1)= -0.248941;
+      crack_front_points[13](1)= -0.312034;
+      crack_front_points[14](1)= -0.375127;
+      crack_front_points[15](1)= -0.438819;
+      crack_front_points[16](1)= -0.502511;
+
+    }
   }
   return crack_front_points;
 }

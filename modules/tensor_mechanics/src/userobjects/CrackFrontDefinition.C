@@ -250,39 +250,8 @@ CrackFrontDefinition::~CrackFrontDefinition() {}
 void
 CrackFrontDefinition::execute()
 {
-  // below is copied from CrackFrontDefinition::initialSetup()
-  // the purpose is to prepare for J-integral calculations using updated crack front
-  // some lines were removed as they only affect initialsetup
-
-  if (_crack_front_points_provider != nullptr)
-    _crack_front_points =
-        _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
-
-  updateCrackFrontGeometry();
-
-  if (_q_function_rings)
-    createQFunctionRings();
-
-  if (_t_stress)
-  {
-    std::size_t num_crack_front_nodes = _ordered_crack_front_nodes.size();
-    for (std::size_t i = 0; i < num_crack_front_nodes; ++i)
-      _strain_along_front.push_back(-std::numeric_limits<Real>::max());
-  }
-
-  std::size_t num_crack_front_points = getNumCrackFrontPoints();
-  if (_q_function_type == "GEOMETRY")
-  {
-    if (!_treat_as_2d)
-      if (num_crack_front_points < 1)
-        mooseError("num_crack_front_points is not > 0");
-    for (std::size_t i = 0; i < num_crack_front_points; ++i)
-    {
-      bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
-      _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
-    }
-  }
-
+  // Because J-Integral is based on original geometry, the crack front geometry
+  // is never updated, so everything that needs to happen is done in initialSetup()
   if (_t_stress == true && _treat_as_2d == false)
     calculateTangentialStrainAlongFront();
 }
@@ -294,8 +263,8 @@ CrackFrontDefinition::initialSetup()
     _crack_front_points =
         _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
 
-  _crack_mouth_boundary_ids = _mesh.getBoundaryIDs(_crack_mouth_boundary_names, true);
-  _intersecting_boundary_ids = _mesh.getBoundaryIDs(_intersecting_boundary_names, true);
+    _crack_mouth_boundary_ids = _mesh.getBoundaryIDs(_crack_mouth_boundary_names, true);
+    _intersecting_boundary_ids = _mesh.getBoundaryIDs(_intersecting_boundary_names, true);
 
   if (_geom_definition_method == CRACK_GEOM_DEFINITION::CRACK_FRONT_NODES)
   {
@@ -329,13 +298,63 @@ CrackFrontDefinition::initialSetup()
     {
       bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
       _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
+      std::cout << is_point_on_intersecting_boundary << "----" << std::endl;
     }
   }
+  std::cout << _crack_front_points.size() << std::endl;
+  std::cout << _crack_mouth_boundary_ids.size() << std::endl;
+  std::cout << _intersecting_boundary_ids.size() << _intersecting_boundary_ids[0] << _intersecting_boundary_ids[1] << std::endl;
+  std::cout << num_crack_front_points << std::endl;
+  std::cout << "initialSetup" << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
 }
 
 void
 CrackFrontDefinition::initialize()
 {
+  // we need a if statement to limit this section to only meshcutter growth problem.
+
+  // below is copied from CrackFrontDefinition::initialSetup()
+  // the purpose is to prepare for J-integral calculations using updated crack front
+  // some lines were removed as they only affect initialsetup
+  if (_crack_front_points_provider != nullptr)
+    _crack_front_points =
+        _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
+
+  // assume that _crack_mouth_boundary_ids and _intersecting_boundary_ids does not change with crack growth
+
+  // for our problems, _geom_definition_method.ne.CRACK_GEOM_DEFINITION::CRACK_FRONT_NODES,
+  // _q_function_rings=0, _t_stress=0, _q_function_type=GEOMETRY
+
+  updateCrackFrontGeometry();
+
+  std::size_t num_crack_front_points = getNumCrackFrontPoints();
+  if (_q_function_type == "GEOMETRY")
+  {
+    if (!_treat_as_2d)
+      if (num_crack_front_points < 1)
+        mooseError("num_crack_front_points is not > 0");
+    for (std::size_t i = 0; i < num_crack_front_points; ++i)
+    {
+      bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
+      _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
+      // may use this info to determine if crack is still self-similar, or not creacting a new segment of crack
+      std::cout << is_point_on_intersecting_boundary << "----" << std::endl;
+    }
+  }
+
+  std::cout << _crack_front_points.size() << std::endl;
+  std::cout << _crack_mouth_boundary_ids.size() << std::endl;
+  std::cout << _intersecting_boundary_ids.size() << _intersecting_boundary_ids[0] << _intersecting_boundary_ids[1] << std::endl;
+  std::cout << num_crack_front_points << std::endl;
+  std::cout << "initialize" << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
+  std::cout << "======================" << std::endl;
 }
 
 void
