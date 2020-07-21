@@ -203,16 +203,16 @@ JIntegral::execute()
       _j_integral[icfp] +=
           _JxW[_qp] * _coord[_qp] * computeQpIntegral(icfp, scalar_q, grad_of_scalar_q);
 
-      if (icfp==0)
-      {
-        std::cout << (*_phi_curr_elem)[0][0] << "  " << _q_curr_elem[0] << "  " << (*_dphi_curr_elem)[0][_qp](0) << std::endl;
-        std::cout << _JxW[_qp] << "  " << _coord[_qp] << "  " << scalar_q << "  " << grad_of_scalar_q << "  " << computeQpIntegral(icfp, scalar_q, grad_of_scalar_q) << std::endl;
-      }
+//      if (icfp==16)
+//      {
+//        std::cout << (*_phi_curr_elem)[0][0] << "  " << _q_curr_elem[0] << "  " << (*_dphi_curr_elem)[0][_qp](0) << std::endl;
+//        std::cout << _JxW[_qp] << "  " << _coord[_qp] << "  " << scalar_q << "  " << grad_of_scalar_q << "  " << computeQpIntegral(icfp, scalar_q, grad_of_scalar_q) << std::endl;
+//      }
     }
   }
-  std::cout << _j_integral[0] << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
+//  std::cout << _j_integral[16] << std::endl;
+//  std::cout << "======================" << std::endl;
+//  std::cout << "======================" << std::endl;
 }
 
 void

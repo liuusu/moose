@@ -1,4 +1,4 @@
-  [GlobalParams]
+[GlobalParams]
   order = FIRST
   family = LAGRANGE
 []
@@ -17,15 +17,15 @@
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_penny_crack.xda
-    size_control = 0.125  # was 0.125
+    mesh_file = mesh_penny_crack4.xda
+    size_control = 1   #0.125
     n_step_growth = 1
     growth_type = 'self_similar'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
     function_v = growth_func_v
-    crack_front_nodes = '5 4 3 2 1'
+    crack_front_nodes = '9 8 7 6 5 4 3 2 1 0'
   [../]
 []
 
@@ -44,7 +44,7 @@
   [../]
   [./growth_func_v]
     type = ParsedFunction
-    value = 1.25   # was 1.25
+    value = 1.25  #1.25
   [../]
 []
 
@@ -84,7 +84,7 @@
   integrals = 'Jintegral InteractionIntegralKI InteractionIntegralKII'
   displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
-  number_points_from_provider = 5
+  number_points_from_provider = 9
   crack_end_direction_method = CrackDirectionVector
   crack_direction_vector_end_1 = '0 1 0'
   crack_direction_vector_end_2 = '1 0 0'
@@ -231,12 +231,12 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 3.0
+  end_time = 1.0
 []
 
 [Outputs]
   csv = true
-  file_base = penny_crack_k
+  file_base = penny_crack_k2
   execute_on = timestep_end
   exodus = true
   [./console]

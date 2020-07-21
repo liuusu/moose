@@ -1036,8 +1036,8 @@ MeshCut3DUserObject::refineFront()
 
   _front = new_front;
 
-  //writeVector(_front[0], "front: ");
-  //writeVector(_tracked_crack_front_nodes, "tracked front: ");
+  writeVector(_front[0], "front");
+  writeVector(_tracked_crack_front_nodes, "tracked front");
 
   // limitation: this approach does not currently support growth of one crack front into two
   if (_front[0][0] == _tracked_crack_front_nodes[0] && _front[0].back() == _tracked_crack_front_nodes.back())
@@ -1208,7 +1208,7 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
     std::cout << "======================" << std::endl;
     std::cout << "======================" << std::endl;
     std::cout << "======================" << std::endl;
-    if (_fe_problem.timeStep()==2)
+    if (_fe_problem.timeStep()==1000)
     {
       crack_front_points[0](0) = -0.506313;
       crack_front_points[1](0) = -0.44072;

@@ -18,7 +18,7 @@
   [./cut_mesh]
     type = MeshCut3DUserObject
     mesh_file = mesh_penny_crack.xda
-    size_control = 0.125  # was 0.125
+    size_control = 1  # was 0.125
     n_step_growth = 1
     growth_type = 'self_similar'
     function_x = growth_func_x
@@ -44,7 +44,7 @@
   [../]
   [./growth_func_v]
     type = ParsedFunction
-    value = 1.25   # was 1.25
+    value = 0.15   # was 1.25
   [../]
 []
 
