@@ -298,18 +298,8 @@ CrackFrontDefinition::initialSetup()
     {
       bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
       _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
-      std::cout << is_point_on_intersecting_boundary << "----" << std::endl;
     }
   }
-  std::cout << _crack_front_points.size() << std::endl;
-  std::cout << _crack_mouth_boundary_ids.size() << std::endl;
-  std::cout << _intersecting_boundary_ids.size() << _intersecting_boundary_ids[0] << _intersecting_boundary_ids[1] << std::endl;
-  std::cout << num_crack_front_points << std::endl;
-  std::cout << "initialSetup" << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
 }
 
 void
@@ -341,20 +331,14 @@ CrackFrontDefinition::initialize()
     {
       bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
       _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
-      // may use this info to determine if crack is still self-similar, or not creacting a new segment of crack
+      // may use this info to determine if crack is still self-similar, or not creating a new segment of crack
       std::cout << is_point_on_intersecting_boundary << "----" << std::endl;
     }
   }
-
-  std::cout << _crack_front_points.size() << std::endl;
-  std::cout << _crack_mouth_boundary_ids.size() << std::endl;
-  std::cout << _intersecting_boundary_ids.size() << _intersecting_boundary_ids[0] << _intersecting_boundary_ids[1] << std::endl;
-  std::cout << num_crack_front_points << std::endl;
-  std::cout << "initialize" << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
-  std::cout << "======================" << std::endl;
+  // std::cout << _crack_front_points.size() << std::endl;
+  // std::cout << _crack_mouth_boundary_ids.size() << std::endl;
+  // std::cout << _intersecting_boundary_ids.size() << _intersecting_boundary_ids[0] << _intersecting_boundary_ids[1] << std::endl;
+  // std::cout << num_crack_front_points << std::endl;
 }
 
 void

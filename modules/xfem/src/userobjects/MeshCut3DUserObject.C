@@ -1036,8 +1036,8 @@ MeshCut3DUserObject::refineFront()
 
   _front = new_front;
 
-  writeVector(_front[0], "front");
-  writeVector(_tracked_crack_front_nodes, "tracked front");
+  // writeVector(_front[0], "front");
+  // writeVector(_tracked_crack_front_nodes, "tracked front");
 
   // limitation: this approach does not currently support growth of one crack front into two
   if (_front[0][0] == _tracked_crack_front_nodes[0] && _front[0].back() == _tracked_crack_front_nodes.back())
@@ -1197,17 +1197,7 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
     Point & this_point = *this_node;
     crack_front_points[i] = this_point;
 
-
-
-
-
-
-
-    std::cout << "======================" << std::endl;
-    std::cout << "======================" << std::endl;
-    std::cout << "======================" << std::endl;
-    std::cout << "======================" << std::endl;
-    std::cout << "======================" << std::endl;
+    // this is to make penny_crack_k2 exactly the same as penny_crack_k; change to timestep=2
     if (_fe_problem.timeStep()==1000)
     {
       crack_front_points[0](0) = -0.506313;
@@ -1245,7 +1235,6 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
       crack_front_points[14](1)= -0.375127;
       crack_front_points[15](1)= -0.438819;
       crack_front_points[16](1)= -0.502511;
-
     }
   }
   return crack_front_points;
