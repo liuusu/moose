@@ -332,7 +332,7 @@ CrackFrontDefinition::initialize()
       bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
       _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
       // may use this info to determine if crack is still self-similar, or not creating a new segment of crack
-      std::cout << is_point_on_intersecting_boundary << "----" << std::endl;
+      // std::cout << is_point_on_intersecting_boundary << "----" << std::endl;
     }
   }
   // std::cout << _crack_front_points.size() << std::endl;
