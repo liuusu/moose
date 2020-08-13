@@ -311,7 +311,9 @@ protected:
   /// Coordinates of crack mouth
   RealVectorValue _crack_mouth_coordinates;
   /// Vector normal to crack plane
-  RealVectorValue _crack_plane_normal;
+  RealVectorValue _crack_plane_normal_uniform;
+  /// Vector normal to crack plane
+  std::vector<RealVectorValue>  _crack_plane_normal_vector;
   /// Whether to treat a 3D model as 2D for computation of fracture integrals
   bool _treat_as_2d;
   /// Whether the crack forms a closed loop
