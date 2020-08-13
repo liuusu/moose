@@ -9,7 +9,18 @@
 []
 
 [Mesh]
-  file = quarter_sym.e
+  type = GeneratedMesh
+  dim = 3
+  nx = 17
+  ny = 17
+  nz = 3
+  xmin = -0.5
+  xmax = 0.5
+  ymin = -0.5
+  ymax = 0.5
+  zmin = -0.25
+  zmax = 0.25
+  elem_type = HEX8
 []
 
 [UserObjects]
@@ -17,7 +28,7 @@
     type = CircleCutUserObject
     cut_data = '-0.5 -0.5 0
                 0.0 -0.5 0
-                -0.5 0 0'
+                -0.5 0.0 0'
   [../]
 []
 
@@ -33,33 +44,33 @@
   disp_x = disp_x
   disp_y = disp_y
   disp_z = disp_z
-  crack_front_points = '-0.50	0.00	0.00
-                        -0.45	0.00	0.00
-                        -0.40	-0.01	0.00
-                        -0.35	-0.02	0.00
-                        -0.31	-0.04	0.00
-                        -0.26	-0.06	0.00
-                        -0.22	-0.08	0.00
-                        -0.18	-0.11	0.00
-                        -0.15	-0.15	0.00
-                        -0.11	-0.18	0.00
-                        -0.08	-0.22	0.00
-                        -0.06	-0.26	0.00
-                        -0.04	-0.31	0.00
-                        -0.02	-0.35	0.00
-                        -0.01	-0.40	0.00
-                        0.00	-0.45	0.00
-                        0.00	-0.50	0.00'
+  crack_front_points = '-0.500	0.000	0.000
+                        -0.451	-0.002	0.000
+                        -0.402	-0.010	0.000
+                        -0.355	-0.022	0.000
+                        -0.309	-0.038	0.000
+                        -0.264	-0.059	0.000
+                        -0.222	-0.084	0.000
+                        -0.183	-0.114	0.000
+                        -0.146	-0.146	0.000
+                        -0.113	-0.183	0.000
+                        -0.084	-0.222	0.000
+                        -0.059	-0.264	0.000
+                        -0.038	-0.309	0.000
+                        -0.022	-0.355	0.000
+                        -0.010	-0.402	0.000
+                        -0.002	-0.451	0.000
+                        0.000	-0.500	0.000'
   crack_end_direction_method = CrackDirectionVector
   crack_direction_vector_end_1 = '0 1 0'
   crack_direction_vector_end_2 = '1 0 0'
   crack_direction_method = CurvedCrackFront
-  intersecting_boundary = '3 4' #It would be ideal to use this, but can't use with XFEM yet
+  intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
   radius_inner = '0.3'
   radius_outer = '0.6'
   poissons_ratio = 0.3
   youngs_modulus = 207000
-  block = 1
+  block = 0
   incremental = true
 []
 
@@ -77,7 +88,7 @@
     variable = SED
     property = strain_energy_density
     execute_on = timestep_end
-    block = 1
+    block = 0
   [../]
 []
 
@@ -92,37 +103,37 @@
 [BCs]
   [./top_z]
     type = FunctionNeumannBC
-    boundary = 2
+    boundary = front
     variable = disp_z
     function = top_trac_z
   [../]
   [./bottom_x]
     type = DirichletBC
-    boundary = 1
+    boundary = back
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
     type = DirichletBC
-    boundary = 1
+    boundary = back
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
     type = DirichletBC
-    boundary = 1
+    boundary = back
     variable = disp_z
     value = 0.0
   [../]
   [./sym_y]
     type = DirichletBC
-    boundary = 3
+    boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
   [./sym_x]
     type = DirichletBC
-    boundary = 4
+    boundary = left
     variable = disp_x
     value = 0.0
   [../]

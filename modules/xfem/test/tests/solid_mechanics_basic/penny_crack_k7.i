@@ -1,4 +1,4 @@
-  [GlobalParams]
+[GlobalParams]
   order = FIRST
   family = LAGRANGE
 []
@@ -20,7 +20,7 @@
     mesh_file = mesh_penny_crack7.xda
     size_control = 1  # was 0.125
     n_step_growth = 1
-    growth_type = 'self_similar'
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -236,7 +236,7 @@
 
 [Outputs]
   csv = true
-  file_base = penny_crack_k
+  file_base = out/penny_crack_multi
   execute_on = timestep_end
   exodus = true
   [./console]

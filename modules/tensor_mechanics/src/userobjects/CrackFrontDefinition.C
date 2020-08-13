@@ -1285,8 +1285,11 @@ CrackFrontDefinition::calculateRThetaToCrackFront(const Point qp,
     if (MooseUtils::absoluteFuzzyEqual(r, p_to_plane_dist, _tol))
       theta_quadrant1 = 0.5 * libMesh::pi;
     else if (p_to_plane_dist > r)
+    {
+      std::cout << p_to_plane_dist << "," << r << std::endl;
       mooseError(
           "Invalid distance p_to_plane_dist in CrackFrontDefinition::calculateRThetaToCrackFront");
+    }
     else
       theta_quadrant1 = std::asin(p_to_plane_dist / r);
 

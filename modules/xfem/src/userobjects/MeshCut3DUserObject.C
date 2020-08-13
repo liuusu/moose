@@ -777,10 +777,42 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
         dir_cfc(0) = cos(theta);
         dir_cfc(1) = sin(theta);  // this sign needs verification
         dir_cfc(2) = 0;
-        dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,i);
+        dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,index);
         std::cout << "index, theta, k1, k2, dir(3): " << index << "  " << theta/3.14*180 << "    " << k1[index] << "  " << k2[index] << "    " << dir_cfc(0) << "  " << dir_cfc(1) << "    " << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
 
         temp.push_back(dir);
+
+        if (j == i1)
+        {
+          dir_cfc(0) = 1;
+          dir_cfc(1) = 0;
+          dir_cfc(2) = 0;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,0);
+          std::cout << "x" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,4);
+          std::cout << "x" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,8);
+          std::cout << "x" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir_cfc(0) = 0;
+          dir_cfc(1) = 1;
+          dir_cfc(2) = 0;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,0);
+          std::cout << "y" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,4);
+          std::cout << "y" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,8);
+          std::cout << "y" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir_cfc(0) = 0;
+          dir_cfc(1) = 0;
+          dir_cfc(2) = 1;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,0);
+          std::cout << "z" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,4);
+          std::cout << "z" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,8);
+          std::cout << "z" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
+        }
+
       }
     }
 
@@ -1220,46 +1252,6 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
     mooseAssert(this_node, "Node is NULL");
     Point & this_point = *this_node;
     crack_front_points[i] = this_point;
-
-    // this is to make penny_crack_k2 exactly the same as penny_crack_k; change to timestep=2
-    if (_fe_problem.timeStep()==1000)
-    {
-      crack_front_points[0](0) = -0.506313;
-      crack_front_points[1](0) = -0.44072;
-      crack_front_points[2](0) = -0.375126;
-      crack_front_points[3](0) = -0.312034;
-      crack_front_points[4](0) = -0.248941;
-      crack_front_points[5](0) = -0.195704;
-      crack_front_points[6](0) = -0.142467;
-      crack_front_points[7](0) = -0.08923;
-      crack_front_points[8](0) = -0.0359928;
-      crack_front_points[9](0) = -0.000420927;
-      crack_front_points[10](0)= 0.035151;
-      crack_front_points[11](0)= 0.0707229;
-      crack_front_points[12](0)= 0.106295;
-      crack_front_points[13](0)= 0.118786;
-      crack_front_points[14](0)= 0.131277;
-      crack_front_points[15](0)= 0.143887;
-      crack_front_points[16](0)= 0.156497;
-
-      crack_front_points[0](1) = 0.161311;
-      crack_front_points[1](1) = 0.146294;
-      crack_front_points[2](1) = 0.131277;
-      crack_front_points[3](1) = 0.118786;
-      crack_front_points[4](1) = 0.106295;
-      crack_front_points[5](1) = 0.0707229;
-      crack_front_points[6](1) = 0.035151;
-      crack_front_points[7](1) = -0.000420938;
-      crack_front_points[8](1) = -0.0359928;
-      crack_front_points[9](1) = -0.08923;
-      crack_front_points[10](1)= -0.142467;
-      crack_front_points[11](1)= -0.195704;
-      crack_front_points[12](1)= -0.248941;
-      crack_front_points[13](1)= -0.312034;
-      crack_front_points[14](1)= -0.375127;
-      crack_front_points[15](1)= -0.438819;
-      crack_front_points[16](1)= -0.502511;
-    }
   }
   return crack_front_points;
 }

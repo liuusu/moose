@@ -1,27 +1,79 @@
-[GlobalParams]
-  displacements = 'disp_x disp_y disp_z'
-  volumetric_locking_correction = true
+  [GlobalParams]
+  order = FIRST
+  family = LAGRANGE
 []
 
 [XFEM]
+  geometric_cut_userobjects = 'cut_mesh'
   qrule = volfrac
   output_cut_plane = true
 []
 
 [Mesh]
   file = quarter_sym.e
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [UserObjects]
-  [./circle_cut_uo]
-    type = CircleCutUserObject
-    cut_data = '-0.5 -0.5 0
-                0.0 -0.5 0
-                -0.5 0 0'
+  [./cut_mesh]
+    type = MeshCut3DUserObject
+    mesh_file = mesh_penny_crack.xda
+    size_control = 0.125  # was 0.125
+    n_step_growth = 1
+    growth_type = 'function'
+    function_x = growth_func_x
+    function_y = growth_func_y
+    function_z = growth_func_z
+    function_v = growth_func_v
+    crack_front_nodes = '5 4 3 2 1'
+  [../]
+[]
+
+[Functions]
+  [./growth_func_x]
+    type = ParsedFunction
+    value = (x+0.5)
+  [../]
+  [./growth_func_y]
+    type = ParsedFunction
+    value = (y+0.5)
+  [../]
+  [./growth_func_z]
+    type = ParsedFunction
+    value = z
+  [../]
+  [./growth_func_v]
+    type = ParsedFunction
+    value = 1.25   # was 1.25
+  [../]
+[]
+
+[Variables]
+  [./disp_x]
+  [../]
+  [./disp_y]
+  [../]
+  [./disp_z]
   [../]
 []
 
 [AuxVariables]
+  [./stress_xx]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./stress_yy]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./stress_zz]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
+  [./vonmises]
+    order = CONSTANT
+    family = MONOMIAL
+  [../]
   [./SED]
    order = CONSTANT
     family = MONOMIAL
@@ -30,26 +82,9 @@
 
 [DomainIntegral]
   integrals = 'Jintegral InteractionIntegralKI InteractionIntegralKII'
-  disp_x = disp_x
-  disp_y = disp_y
-  disp_z = disp_z
-  crack_front_points = '-0.50	0.00	0.00
-                        -0.45	0.00	0.00
-                        -0.40	-0.01	0.00
-                        -0.35	-0.02	0.00
-                        -0.31	-0.04	0.00
-                        -0.26	-0.06	0.00
-                        -0.22	-0.08	0.00
-                        -0.18	-0.11	0.00
-                        -0.15	-0.15	0.00
-                        -0.11	-0.18	0.00
-                        -0.08	-0.22	0.00
-                        -0.06	-0.26	0.00
-                        -0.04	-0.31	0.00
-                        -0.02	-0.35	0.00
-                        -0.01	-0.40	0.00
-                        0.00	-0.45	0.00
-                        0.00	-0.50	0.00'
+  displacements = 'disp_x disp_y disp_z'
+  crack_front_points_provider = cut_mesh
+  number_points_from_provider = 5
   crack_end_direction_method = CrackDirectionVector
   crack_direction_vector_end_1 = '0 1 0'
   crack_direction_vector_end_2 = '1 0 0'
@@ -61,17 +96,47 @@
   youngs_modulus = 207000
   block = 1
   incremental = true
+  solid_mechanics = true
 []
 
-[Modules/TensorMechanics/Master]
-  [./all]
-    strain = FINITE
-    add_variables = true
-    generate_output = 'stress_xx stress_yy stress_zz vonmises_stress'
+[SolidMechanics]
+  [./solid]
+    disp_x = disp_x
+    disp_y = disp_y
+    disp_z = disp_z
+    use_displaced_mesh = true
   [../]
 []
 
 [AuxKernels]
+  [./stress_xx]
+    type = MaterialTensorAux
+    tensor = stress
+    variable = stress_xx
+    index = 0
+    execute_on = timestep_end
+  [../]
+  [./stress_yy]
+    type = MaterialTensorAux
+    tensor = stress
+    variable = stress_yy
+    index = 1
+    execute_on = timestep_end
+  [../]
+  [./stress_zz]
+    type = MaterialTensorAux
+    tensor = stress
+    variable = stress_zz
+    index = 2
+    execute_on = timestep_end
+  [../]
+  [./vonmises]
+    type = MaterialTensorAux
+    tensor = stress
+    variable = vonmises
+    quantity = vonmises
+    execute_on = timestep_end
+  [../]
   [./SED]
     type = MaterialRealAux
     variable = SED
@@ -87,7 +152,6 @@
     value = 10
   [../]
 []
-
 
 [BCs]
   [./top_z]
@@ -129,13 +193,15 @@
 []
 
 [Materials]
-  [./elasticity_tensor]
-    type = ComputeIsotropicElasticityTensor
-    youngs_modulus = 207000
+  [./linelast]
+    type = Elastic
+    block = 1
+    disp_x = disp_x
+    disp_y = disp_y
+    disp_z = disp_z
     poissons_ratio = 0.3
-  [../]
-  [./stress]
-    type = ComputeFiniteStrainElasticStress
+    youngs_modulus = 207000
+    compute_JIntegral = true
   [../]
 []
 
@@ -165,11 +231,12 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 1.0
+  end_time = 3.0
 []
 
 [Outputs]
-  file_base = out/penny_crack_out
+  csv = true
+  file_base = out/penny_crack_multi
   execute_on = timestep_end
   exodus = true
   [./console]
