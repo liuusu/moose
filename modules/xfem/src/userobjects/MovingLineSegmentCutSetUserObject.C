@@ -35,6 +35,12 @@ MovingLineSegmentCutSetUserObject::getCrackFrontPoints(
   mooseError("getCrackFrontPoints() is not implemented for this object.");
 }
 
+const std::vector<RealVectorValue>
+MovingLineSegmentCutSetUserObject::getCrackPlaneNormals(unsigned int /*num_crack_front_points*/) const
+{
+  mooseError("getCrackPlaneNormals() is not implemented for this object.");
+}
+
 void
 MovingLineSegmentCutSetUserObject::initialize()
 {

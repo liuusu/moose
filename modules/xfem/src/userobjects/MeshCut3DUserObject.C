@@ -1256,6 +1256,52 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
   return crack_front_points;
 }
 
+const std::vector<RealVectorValue>
+MeshCut3DUserObject::getCrackPlaneNormals(unsigned int number_crack_front_points) const
+{
+  std::vector<RealVectorValue> crack_plane_normals(number_crack_front_points);
+
+  // build the node-to-elems map
+  std::unordered_map<dof_id_type, std::vector<dof_id_type>> node_to_elems_map;
+  node_to_elems_map.clear();
+  for (const auto & elem : _cut_mesh->element_ptr_range())
+    for (auto & node : elem->node_ref_range())
+      node_to_elems_map[node.id()].push_back(elem->id());
+
+  // build the elem-to-normal map
+  std::unordered_map<dof_id_type, RealVectorValue> elem_to_normal_map;
+  elem_to_normal_map.clear();
+  for (const auto & elem : _cut_mesh->element_ptr_range())
+  {
+    Point & p1 = *elem->node_ptr(0);
+    Point & p2 = *elem->node_ptr(1);
+    Point & p3 = *elem->node_ptr(2);
+    Plane elem_plane(p3, p2, p1);   // to match the current normal of 0,0,-1; can be improved
+    RealVectorValue normal = elem_plane.unit_normal(p1);
+    elem_to_normal_map[elem->id()] = normal;
+  }
+
+  // for any front node, the normal is averaged based on the normals of all elements sharing this node
+  // this code may fail when the front node has no element connected to it, e.g. refinement at step 1
+  // needs to be improved
+  for (unsigned int i = 0; i < number_crack_front_points; ++i)
+  {
+    dof_id_type id = _crack_front_points[i];
+    std::vector<dof_id_type> elems = node_to_elems_map[id];
+    unsigned int n_elem = elems.size();
+
+    RealVectorValue normal_avr = 0;
+    for (unsigned int j = 0; j < n_elem; ++j)
+      normal_avr += elem_to_normal_map[elems[j]];
+    normal_avr = normal_avr/n_elem;
+
+    std::cout << id << ": " << normal_avr << std::endl;
+    std::cout << "======================" << std::endl;
+    crack_plane_normals[i] = normal_avr;
+  }
+  return crack_plane_normals;
+}
+
 void
 MeshCut3DUserObject::writeCutMesh()
 {

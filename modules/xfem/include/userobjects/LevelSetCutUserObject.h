@@ -38,6 +38,9 @@ public:
   virtual const std::vector<Point>
   getCrackFrontPoints(unsigned int num_crack_front_points) const override;
 
+  virtual const std::vector<RealVectorValue>
+  getCrackPlaneNormals(unsigned int num_crack_front_points) const override;
+
 protected:
   /// The variable number of the level set variable we using to define the cuts
   const unsigned int _level_set_var_number;
