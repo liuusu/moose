@@ -148,8 +148,15 @@ CrackFrontDefinition::CrackFrontDefinition(const InputParameters & parameters)
     _num_points_from_provider = getParam<unsigned int>("number_points_from_provider");
     _geom_definition_method = CRACK_GEOM_DEFINITION::CRACK_FRONT_POINTS;
 
-    if (getParam<UserObjectName>("crack_front_points_provider") == "cut_mesh" && _direction_method != DIRECTION_METHOD::CURVED_CRACK_FRONT)
-      mooseError("Using the cutter mesh requires _direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT");
+    if (getParam<UserObjectName>("crack_front_points_provider") == "cut_mesh")
+    {
+      if (_direction_method != DIRECTION_METHOD::CURVED_CRACK_FRONT)
+        paramError("crack_direction_method",
+                   "Using the cutter mesh requires _direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT");
+      if (isParamValid("crack_mouth_boundary"))
+        paramError("crack_mouth_boundary",
+                  "Using the cutter mesh requires that there is no crack_mouth_boundary defined");
+    }
   }
   else if (isParamValid("number_points_from_provider"))
     paramError("number_points_from_provider",
@@ -263,12 +270,12 @@ void
 CrackFrontDefinition::initialSetup()
 {
   if (_crack_front_points_provider != nullptr)
+  {
     _crack_front_points =
         _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
-
-  if (_crack_front_points_provider != nullptr)
     _crack_plane_normals =
         _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
+  }
 
     _crack_mouth_boundary_ids = _mesh.getBoundaryIDs(_crack_mouth_boundary_names, true);
     _intersecting_boundary_ids = _mesh.getBoundaryIDs(_intersecting_boundary_names, true);
