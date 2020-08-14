@@ -106,6 +106,7 @@ CrackFrontDefinition::CrackFrontDefinition(const InputParameters & parameters)
     _aux(_fe_problem.getAuxiliarySystem()),
     _mesh(_subproblem.mesh()),
     _treat_as_2d(getParam<bool>("2d")),
+    _use_mesh_cutter(false),
     _closed_loop(getParam<bool>("closed_loop")),
     _axis_2d(getParam<unsigned int>("axis_2d")),
     _has_symmetry_plane(isParamValid("symmetry_plane")),
@@ -150,6 +151,7 @@ CrackFrontDefinition::CrackFrontDefinition(const InputParameters & parameters)
 
     if (getParam<UserObjectName>("crack_front_points_provider") == "cut_mesh")
     {
+      _use_mesh_cutter = true;
       if (_direction_method != DIRECTION_METHOD::CURVED_CRACK_FRONT)
         paramError("crack_direction_method",
                    "Using the cutter mesh requires _direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT");
@@ -271,14 +273,13 @@ CrackFrontDefinition::initialSetup()
 {
   if (_crack_front_points_provider != nullptr)
   {
-    _crack_front_points =
-        _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
-    _crack_plane_normals =
-        _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
+    _crack_front_points = _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
+    if (_use_mesh_cutter)
+      _crack_plane_normals = _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
   }
 
-    _crack_mouth_boundary_ids = _mesh.getBoundaryIDs(_crack_mouth_boundary_names, true);
-    _intersecting_boundary_ids = _mesh.getBoundaryIDs(_intersecting_boundary_names, true);
+  _crack_mouth_boundary_ids = _mesh.getBoundaryIDs(_crack_mouth_boundary_names, true);
+  _intersecting_boundary_ids = _mesh.getBoundaryIDs(_intersecting_boundary_names, true);
 
   if (_geom_definition_method == CRACK_GEOM_DEFINITION::CRACK_FRONT_NODES)
   {
@@ -325,13 +326,11 @@ CrackFrontDefinition::initialize()
   // the purpose is to prepare for J-integral calculations using updated crack front
   // some lines were removed as they only affect initialsetup
   if (_crack_front_points_provider != nullptr)
-    _crack_front_points =
-        _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
-
-  std::cout << _num_points_from_provider << std::endl;
-  if (_crack_front_points_provider != nullptr)
-    _crack_plane_normals =
-        _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
+  {
+    _crack_front_points = _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
+    if (_use_mesh_cutter)
+      _crack_plane_normals = _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
+  }
 
   // assume that _crack_mouth_boundary_ids and _intersecting_boundary_ids does not change with crack growth
 

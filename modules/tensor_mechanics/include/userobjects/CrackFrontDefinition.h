@@ -316,6 +316,8 @@ protected:
   std::vector<RealVectorValue>  _crack_plane_normals;
   /// Whether to treat a 3D model as 2D for computation of fracture integrals
   bool _treat_as_2d;
+  /// Whether to describe the 3D crack as a mesh cutter
+  bool _use_mesh_cutter;
   /// Whether the crack forms a closed loop
   bool _closed_loop;
   /// Out of plane axis when crack is treated as 2D
