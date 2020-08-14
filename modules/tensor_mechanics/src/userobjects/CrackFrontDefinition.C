@@ -785,7 +785,7 @@ CrackFrontDefinition::updateCrackFrontGeometry()
     _tangent_directions.push_back(tangent_direction);
     const Point * crack_front_point = getCrackFrontPoint(0);
     crack_direction =
-        calculateCrackFrontDirection(*crack_front_point, tangent_direction, MIDDLE_NODE);
+        calculateCrackFrontDirection(*crack_front_point, tangent_direction, MIDDLE_NODE, 0);
     _crack_directions.push_back(crack_direction);
     _crack_plane_normal = tangent_direction.cross(crack_direction);
     RankTwoTensor rot_mat;
@@ -853,13 +853,18 @@ CrackFrontDefinition::updateCrackFrontGeometry()
       tangent_direction = tangent_direction / tangent_direction.norm();
       _tangent_directions.push_back(tangent_direction);
       _crack_directions.push_back(
-          calculateCrackFrontDirection(*getCrackFrontPoint(i), tangent_direction, ntype));
+          calculateCrackFrontDirection(*getCrackFrontPoint(i), tangent_direction, ntype, i));
 
       // If the end directions are given by the user, correct also the tangent at the end nodes
       if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT &&
           _end_direction_method == END_DIRECTION_METHOD::END_CRACK_DIRECTION_VECTOR &&
           (ntype == END_1_NODE || ntype == END_2_NODE))
-        _tangent_directions[i] = _crack_plane_normal.cross(_crack_directions[i]);
+      {
+        if (_use_mesh_cutter)
+          _tangent_directions[i] = _crack_plane_normals[i].cross(_crack_directions[i]);
+        else
+          _tangent_directions[i] = _crack_plane_normal.cross(_crack_directions[i]);
+      }
 
       back_segment = forward_segment;
       back_segment_len = forward_segment_len;
@@ -928,7 +933,10 @@ CrackFrontDefinition::updateCrackFrontGeometry()
     {
       RankTwoTensor rot_mat;
       rot_mat.fillRow(0, _crack_directions[i]);
-      rot_mat.fillRow(1, _crack_plane_normal);
+      if (_use_mesh_cutter)
+        rot_mat.fillRow(1, _crack_plane_normals[i]);
+      else
+        rot_mat.fillRow(1, _crack_plane_normal);
       rot_mat.fillRow(2, _tangent_directions[i]);
       _rot_matrix.push_back(rot_mat);
     }
@@ -994,7 +1002,7 @@ CrackFrontDefinition::updateDataForCrackDirection()
       _crack_mouth_coordinates(_symmetry_plane) = 0.0;
   }
 
-  if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT)
+  if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT && !_use_mesh_cutter)
   {
     _crack_plane_normal.zero();
 
@@ -1044,7 +1052,8 @@ CrackFrontDefinition::updateDataForCrackDirection()
 RealVectorValue
 CrackFrontDefinition::calculateCrackFrontDirection(const Point & crack_front_point,
                                                    const RealVectorValue & tangent_direction,
-                                                   const CRACK_NODE_TYPE ntype) const
+                                                   const CRACK_NODE_TYPE ntype,
+                                                   const std::size_t crack_front_point_index) const
 {
   RealVectorValue crack_dir;
   RealVectorValue zero_vec(0.0);
@@ -1094,7 +1103,10 @@ CrackFrontDefinition::calculateCrackFrontDirection(const Point & crack_front_poi
     }
     else if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT)
     {
-      crack_dir = tangent_direction.cross(_crack_plane_normal);
+      if(_use_mesh_cutter)
+        crack_dir = tangent_direction.cross(_crack_plane_normals[crack_front_point_index]);
+      else
+        crack_dir = tangent_direction.cross(_crack_plane_normal);
     }
   }
   crack_dir = crack_dir.unit();
@@ -1277,7 +1289,11 @@ CrackFrontDefinition::calculateRThetaToCrackFront(const Point qp,
   }
 
   // Find theta, the angle between r and the crack front plane
-  RealVectorValue crack_plane_normal = rotateToCrackFrontCoords(_crack_plane_normal, point_index);
+  RealVectorValue crack_plane_normal;
+  if (_use_mesh_cutter)
+    crack_plane_normal = rotateToCrackFrontCoords(_crack_plane_normals[point_index], point_index);
+  else
+    crack_plane_normal = rotateToCrackFrontCoords(_crack_plane_normal, point_index);
   Real p_to_plane_dist = std::abs(closest_point_to_p * crack_plane_normal);
 
   // Determine if qp is above or below the crack plane

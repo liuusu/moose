@@ -427,7 +427,8 @@ protected:
    */
   RealVectorValue calculateCrackFrontDirection(const Point & crack_front_point,
                                                const RealVectorValue & tangent_direction,
-                                               const CRACK_NODE_TYPE ntype) const;
+                                               const CRACK_NODE_TYPE ntype,
+                                               const std::size_t crack_front_point_index) const;
 
   /**
    * Compute the strain in the direction tangent to the crack at all points on the
