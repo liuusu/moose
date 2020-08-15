@@ -10,18 +10,8 @@
 []
 
 [Mesh]
-  type = GeneratedMesh
-  dim = 3
-  nx = 9
-  ny = 9
-  nz = 3
-  xmin = -0.5
-  xmax = 0.5
-  ymin = -0.5
-  ymax = 0.5
-  zmin = -0.25
-  zmax = 0.25
-  elem_type = HEX8
+  file = quarter_sym.e
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [UserObjects]
@@ -30,7 +20,7 @@
     mesh_file = mesh_penny_crack7.xda
     size_control = 1  # was 0.125
     n_step_growth = 1
-    growth_type = 'self_similar'
+    growth_type = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
@@ -96,12 +86,12 @@
   crack_front_points_provider = cut_mesh
   number_points_from_provider = 9
   crack_direction_method = CurvedCrackFront
-  intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
+  intersecting_boundary = '3 4' #It would be ideal to use this, but can't use with XFEM yet
   radius_inner = '0.3'
   radius_outer = '0.6'
   poissons_ratio = 0.3
   youngs_modulus = 207000
-  block = 0
+  block = 1
   incremental = true
   solid_mechanics = true
 []
@@ -149,7 +139,7 @@
     variable = SED
     property = strain_energy_density
     execute_on = timestep_end
-    block = 0
+    block = 1
   [../]
 []
 
@@ -163,37 +153,37 @@
 [BCs]
   [./top_z]
     type = FunctionNeumannBC
-    boundary = front
+    boundary = 2
     variable = disp_z
     function = top_trac_z
   [../]
   [./bottom_x]
     type = DirichletBC
-    boundary = back
+    boundary = 1
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
     type = DirichletBC
-    boundary = back
+    boundary = 1
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
     type = DirichletBC
-    boundary = back
+    boundary = 1
     variable = disp_z
     value = 0.0
   [../]
   [./sym_y]
     type = DirichletBC
-    boundary = bottom
+    boundary = 3
     variable = disp_y
     value = 0.0
   [../]
   [./sym_x]
     type = DirichletBC
-    boundary = left
+    boundary = 4
     variable = disp_x
     value = 0.0
   [../]
@@ -202,7 +192,7 @@
 [Materials]
   [./linelast]
     type = Elastic
-    block = 0
+    block = 1
     disp_x = disp_x
     disp_y = disp_y
     disp_z = disp_z

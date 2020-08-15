@@ -95,6 +95,9 @@
   displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
   number_points_from_provider = 9
+  crack_end_direction_method = CrackTangentVector
+  crack_direction_vector_end_1 = '1 0 0'
+  crack_direction_vector_end_2 = '0 -1 0'
   crack_direction_method = CurvedCrackFront
   intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
   radius_inner = '0.3'

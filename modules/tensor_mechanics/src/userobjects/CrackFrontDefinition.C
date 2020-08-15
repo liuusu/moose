@@ -36,7 +36,7 @@ void
 addCrackFrontDefinitionParams(InputParameters & params)
 {
   MooseEnum direction_method("CrackDirectionVector CrackMouth CurvedCrackFront");
-  MooseEnum end_direction_method("NoSpecialTreatment CrackDirectionVector", "NoSpecialTreatment");
+  MooseEnum end_direction_method("NoSpecialTreatment CrackDirectionVector CrackTangentVector", "NoSpecialTreatment");
   params.addParam<std::vector<Point>>("crack_front_points", "Set of points to define crack front");
   params.addParam<bool>("closed_loop", false, "Set of points forms forms a closed loop");
   params.addRequiredParam<MooseEnum>(
@@ -158,6 +158,9 @@ CrackFrontDefinition::CrackFrontDefinition(const InputParameters & parameters)
       if (isParamValid("crack_mouth_boundary"))
         paramError("crack_mouth_boundary",
                   "Using the cutter mesh requires that there is no crack_mouth_boundary defined");
+      if (_treat_as_2d)
+        paramError("2d",
+                  "Using the cutter mesh requires that the problem is not treated as 2d");
     }
   }
   else if (isParamValid("number_points_from_provider"))
@@ -851,9 +854,31 @@ CrackFrontDefinition::updateCrackFrontGeometry()
 
       RealVectorValue tangent_direction = back_segment + forward_segment;
       tangent_direction = tangent_direction / tangent_direction.norm();
+
+      // apply tangent direction at ends
+      if (_use_mesh_cutter)
+      {
+        if (i == 0)
+        {
+          tangent_direction(0) = 1;
+          tangent_direction(1) = 0;
+          tangent_direction(2) = 0;
+        }
+        if (i == num_crack_front_points-1)
+        {
+          tangent_direction(0) = 0;
+          tangent_direction(1) = -1;
+          tangent_direction(2) = 0;
+        }
+      }
+
       _tangent_directions.push_back(tangent_direction);
       _crack_directions.push_back(
           calculateCrackFrontDirection(*getCrackFrontPoint(i), tangent_direction, ntype, i));
+
+      // correct tangent direction in the case of _use_mesh_cutter
+      if (_use_mesh_cutter)
+        _tangent_directions[i] = _crack_plane_normals[i].cross(_crack_directions[i]);
 
       // If the end directions are given by the user, correct also the tangent at the end nodes
       if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT &&
@@ -940,6 +965,22 @@ CrackFrontDefinition::updateCrackFrontGeometry()
       rot_mat.fillRow(2, _tangent_directions[i]);
       _rot_matrix.push_back(rot_mat);
     }
+
+    for (std::size_t i = 0; i < num_crack_front_points; ++i)
+    {
+      std::cout << "local coordinate for front point " << i << std::endl;
+      std::cout << "crack direction: " << _crack_directions[i] << std::endl;
+      std::cout << "crack normal   : " << _crack_plane_normals[i] << std::endl;
+      std::cout << "crack tangent  : " << _tangent_directions[i] << std::endl;
+    }
+    std::cout << "" << std::endl;
+    for (std::size_t i = 0; i < num_crack_front_points; ++i)
+    {
+      std::cout << _crack_directions[i] << std::endl;
+      std::cout << _crack_plane_normals[i] << std::endl;
+      std::cout << _tangent_directions[i] << std::endl;
+    }
+
 
     _console << "Summary of J-Integral crack front geometry:" << std::endl;
     _console << "index   node id   x coord       y coord       z coord       x dir         y dir   "
@@ -1274,6 +1315,8 @@ CrackFrontDefinition::calculateRThetaToCrackFront(const Point qp,
       }
     }
 
+    //out std::cout << "closest: " << closest_point << ", " << min_dist << std::endl;
+
     // Rotate coordinates to crack front coordinate system
     closest_point = rotateToCrackFrontCoords(closest_point, point_index);
     closest_point = closest_point - crack_front_point_rot;
@@ -1310,6 +1353,8 @@ CrackFrontDefinition::calculateRThetaToCrackFront(const Point qp,
     x_local = 1;
   else
     x_local = -1;
+
+  //out std::cout << point_index << "," << qp << "============" << std::endl;
 
   // Calculate theta based on in which quadrant in the crack front coordinate
   // system the qp is located
