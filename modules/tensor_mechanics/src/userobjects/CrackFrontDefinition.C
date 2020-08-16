@@ -56,6 +56,12 @@ addCrackFrontDefinitionParams(InputParameters & params)
   params.addParam<RealVectorValue>(
       "crack_direction_vector_end_2",
       "Direction of crack propagation for the node at end 2 of the crack");
+  params.addParam<RealVectorValue>(
+      "crack_tangent_vector_end_1",
+      "Direction of crack tangent for the node at end 1 of the crack");
+  params.addParam<RealVectorValue>(
+      "crack_tangent_vector_end_2",
+      "Direction of crack tangent for the node at end 2 of the crack");
   params.addParam<std::vector<BoundaryName>>(
       "crack_mouth_boundary", "Boundaries whose average coordinate defines the crack mouth");
   params.addParam<std::vector<BoundaryName>>("intersecting_boundary",
@@ -233,6 +239,20 @@ CrackFrontDefinition::CrackFrontDefinition(const InputParameters & parameters)
                  "CrackDirectionVector");
     _crack_direction_vector_end_1 = getParam<RealVectorValue>("crack_direction_vector_end_1");
     _crack_direction_vector_end_2 = getParam<RealVectorValue>("crack_direction_vector_end_2");
+  }
+
+  if (_end_direction_method == END_DIRECTION_METHOD::END_CRACK_TANGENT_VECTOR)
+  {
+    if (!isParamValid("crack_tangent_vector_end_1"))
+      paramError("crack_tangent_vector_end_1",
+                 "crack_tangent_vector_end_1 must be specified if crack_end_tangent_method = "
+                 "CrackTangentVector");
+    if (!isParamValid("crack_tangent_vector_end_2"))
+      paramError("crack_tangent_vector_end_2",
+                 "crack_tangent_vector_end_2 must be specified if crack_end_tangent_method = "
+                 "CrackTangentVector");
+    _crack_tangent_vector_end_1 = getParam<RealVectorValue>("crack_tangent_vector_end_1");
+    _crack_tangent_vector_end_2 = getParam<RealVectorValue>("crack_tangent_vector_end_2");
   }
 
   if (isParamValid("disp_x") && isParamValid("disp_y") && isParamValid("disp_z"))
@@ -523,9 +543,9 @@ CrackFrontDefinition::orderCrackFrontNodes(std::set<dof_id_type> & nodes)
     {
       pickLoopCrackEndNodes(end_nodes, nodes, node_to_line_elem_map, line_elems);
       _closed_loop = true;
-      if (_end_direction_method == END_DIRECTION_METHOD::END_CRACK_DIRECTION_VECTOR)
+      if (_end_direction_method == END_DIRECTION_METHOD::END_CRACK_DIRECTION_VECTOR || _end_direction_method == END_DIRECTION_METHOD::END_CRACK_TANGENT_VECTOR)
         paramError("end_direction_method",
-                   "In CrackFrontDefinition, end_direction_method cannot be CrackDirectionVector "
+                   "In CrackFrontDefinition, end_direction_method cannot be CrackDirectionVector or CrackTangentVector "
                    "for a closed-loop crack");
       if (_intersecting_boundary_names.size() > 0)
         paramError("intersecting_boundary",
@@ -855,21 +875,14 @@ CrackFrontDefinition::updateCrackFrontGeometry()
       RealVectorValue tangent_direction = back_segment + forward_segment;
       tangent_direction = tangent_direction / tangent_direction.norm();
 
-      // apply tangent direction at ends
-      if (_use_mesh_cutter)
+      // If the end directions are given by the user, correct also the tangent at the end nodes
+      if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT &&
+          _end_direction_method == END_DIRECTION_METHOD::END_CRACK_TANGENT_VECTOR)
       {
-        if (i == 0)
-        {
-          tangent_direction(0) = 1;
-          tangent_direction(1) = 0;
-          tangent_direction(2) = 0;
-        }
-        if (i == num_crack_front_points-1)
-        {
-          tangent_direction(0) = 0;
-          tangent_direction(1) = -1;
-          tangent_direction(2) = 0;
-        }
+        if (ntype == END_1_NODE)
+          tangent_direction = _crack_tangent_vector_end_1;
+        else if (ntype == END_2_NODE)
+          tangent_direction = _crack_tangent_vector_end_2;
       }
 
       _tangent_directions.push_back(tangent_direction);

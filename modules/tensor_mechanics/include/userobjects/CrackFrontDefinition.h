@@ -249,7 +249,8 @@ protected:
   /// at the ends of the crack
   const enum class END_DIRECTION_METHOD {
     NO_SPECIAL_TREATMENT,
-    END_CRACK_DIRECTION_VECTOR
+    END_CRACK_DIRECTION_VECTOR,
+    END_CRACK_TANGENT_VECTOR
   } _end_direction_method;
 
   /// Enum used to define the type of the nodes on the crack front (end or middle)
@@ -300,6 +301,10 @@ protected:
   RealVectorValue _crack_direction_vector_end_1;
   /// Fixed vector optionally used to define crack extension direction at end 2 of crack front
   RealVectorValue _crack_direction_vector_end_2;
+  /// Fixed vector optionally used to define crack tangent direction at end 1 of crack front
+  RealVectorValue _crack_tangent_vector_end_1;
+  /// Fixed vector optionally used to define crack tangent direction at end 2 of crack front
+  RealVectorValue _crack_tangent_vector_end_2;
   /// Names of boundaries used to define location of crack mouth
   std::vector<BoundaryName> _crack_mouth_boundary_names;
   /// IDs of boundaries used to define location of crack mouth
