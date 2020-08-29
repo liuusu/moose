@@ -19,7 +19,7 @@
     mesh_file = mesh_penny_crack.xda
     size_control = 0.125
     n_step_growth = 1
-    growth_type = 'self_similar'
+    growth_dir_method = 'max_hoop_stress'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z

@@ -28,11 +28,12 @@ MeshCut3DUserObject::validParams()
   params.addRequiredParam<MeshFileName>(
       "mesh_file",
       "Mesh file for the XFEM geometric cut; currently only the xda type is supported");
-  params.addRequiredParam<std::string>("growth_type","choose from function, self_similar");
+  params.addRequiredParam<std::string>("growth_dir_method","choose from function, max_hoop_stress");
   params.addParam<FunctionName>("function_x", "Growth function for x direction");
   params.addParam<FunctionName>("function_y", "Growth function for y direction");
   params.addParam<FunctionName>("function_z", "Growth function for z direction");
   params.addParam<FunctionName>("function_v", "Growth speed function");
+  params.addParam<std::string>("growth_speed_method", "function", "choose from function, fatigue");
   params.addParam<Real>(
       "size_control", 0, "Criterion for refining elements while growing the crack");
   params.addParam<unsigned int>("n_step_growth", 0, "Number of steps for crack growth");
@@ -46,7 +47,8 @@ MeshCut3DUserObject::validParams()
 MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
   : GeometricCutUserObject(parameters),
     _mesh(_subproblem.mesh()),
-    _growth_type(getParam<std::string>("growth_type")),
+    _growth_dir_method(getParam<std::string>("growth_dir_method")),
+    _growth_speed_method(getParam<std::string>("growth_speed_method")),
     _n_step_growth(getParam<unsigned int>("n_step_growth")),
     _func_x(parameters.isParamValid("function_x") ? &getFunction("function_x") : NULL),
     _func_y(parameters.isParamValid("function_y") ? &getFunction("function_y") : NULL),
@@ -55,6 +57,8 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 {
   _grow = (_n_step_growth == 0 ? 0 : 1);
 
+  std::cout << _growth_speed_method << std::endl;
+
   if (_grow)
   {
     if (!isParamValid("size_control"))
@@ -62,9 +66,11 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 
     _size_control = getParam<Real>("size_control");
 
-    // the three _func_ seem to be required right now.  But later they will become optional for some choices of _growth_method
-    if (_func_x == NULL || _func_y == NULL || _func_z == NULL)
-      mooseError("growth function is not specified for the Function Growth method");
+    if (_growth_dir_method == "function" && (_func_x == NULL || _func_y == NULL || _func_z == NULL))
+      mooseError("function is not specified for the function method that defines growth direction");
+
+    if (_growth_speed_method == "function" && _func_v == NULL)
+      mooseError("function is not specified for the function method that defines growth speed");
 
     if (isParamValid("crack_front_nodes"))
     {
@@ -737,7 +743,7 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
     }
 
     // determine growth direction based on functions defined in the input file
-    if (_growth_type == "function")
+    if (_growth_dir_method == "function")
       // loop over active front points
       for (unsigned int j = i1; j < i2; ++j)
       {
@@ -752,7 +758,7 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       }
 
     // determine growth direction based on KI and KII at the crack front
-    else if (_growth_type == "self_similar")
+    else if (_growth_dir_method == "max_hoop_stress")
     {
       // get KI and KII at front points
       // const VectorPostprocessorValue & j = getVectorPostprocessorValueByName("J_1","J_1");
@@ -816,6 +822,9 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       }
     }
 
+    else
+      mooseError("This growth_dir_method is not pre-defined!");
+
     if (_inactive_boundary_pos.size() != 0)
     {
       for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
@@ -872,11 +881,21 @@ MeshCut3DUserObject::growFront()
       // std::cout << "old dir(3): " << dir(0) << "," << dir(1) << "," << dir(2) << std::endl;
 
       Point x;
-      for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+
+      if (_growth_speed_method == "function")
+        for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+        {
+          Real v_avr = _func_v->value(0, Point(0, 0, 0));
+          x(k) = this_point(k) + dir(k) * v_avr;   // used to multiply _size_control too
+        }
+
+      else if (_growth_speed_method == "fatigue")
       {
-        Real v_avr = _func_v->value(0, Point(0, 0, 0));
-        x(k) = this_point(k) + dir(k) * _size_control * v_avr;
+        
       }
+
+      else
+        mooseError("This growth_speed_method is not pre-defined!");
 
       this_node = Node::build(x, _cut_mesh->n_nodes()).release();
       _cut_mesh->add_node(this_node);

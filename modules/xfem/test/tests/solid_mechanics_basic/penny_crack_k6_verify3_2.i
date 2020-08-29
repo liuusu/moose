@@ -30,7 +30,7 @@
     mesh_file = mesh_penny_crack6_3.xda
     size_control = 1  # was 0.125
     n_step_growth = 1
-    growth_type = 'function'
+    growth_dir_method = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z

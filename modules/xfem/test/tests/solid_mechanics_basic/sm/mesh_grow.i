@@ -29,7 +29,7 @@
   [./cut_mesh]
     type = MeshCut3DUserObject
     mesh_file = mesh_grow.xda
-    growth_type = 'function'
+    growth_dir_method = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z

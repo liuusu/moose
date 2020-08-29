@@ -28,7 +28,7 @@
   [./cut_mesh]
     type = MeshCut3DUserObject
     mesh_file = mesh_edge_crack.xda
-    growth_type = 'function'
+    growth_dir_method = 'function'
     size_control = 0.1
     n_step_growth = 1
     function_x = growth_func_x

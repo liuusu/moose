@@ -65,8 +65,11 @@ protected:
   /// The crack front definition
   CrackFrontDefinition * _crack_front_definition;
 
-  /// The type of mesh growth
-  std::string _growth_type;
+  /// The direction method for growing mesh at the front
+  std::string _growth_dir_method;
+
+  /// The speed method for growing mesh at the front
+  std::string _growth_speed_method;
 
   /// The structural mesh must be 3D only
   const unsigned int _elem_dim = 3;
