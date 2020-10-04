@@ -35,6 +35,12 @@ MeshCut3DUserObject::validParams()
   params.addParam<FunctionName>("function_v", "Growth speed function");
   params.addParam<std::string>("growth_speed_method", "function", "choose from function, fatigue");
   params.addParam<Real>(
+      "max_growth_size", "the max growth size at the crack front in each increment of a fatigue simulation");
+  params.addParam<Real>(
+      "paris_law_c", "parameter C in the Paris law for fatigue");
+  params.addParam<Real>(
+      "paris_law_m", "parameter m in the Paris law for fatigue");
+  params.addParam<Real>(
       "size_control", 0, "Criterion for refining elements while growing the crack");
   params.addParam<unsigned int>("n_step_growth", 0, "Number of steps for crack growth");
   params.addParam<std::vector<dof_id_type>>("crack_front_nodes", "Set of nodes to define crack front");
@@ -57,8 +63,6 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 {
   _grow = (_n_step_growth == 0 ? 0 : 1);
 
-  std::cout << _growth_speed_method << std::endl;
-
   if (_grow)
   {
     if (!isParamValid("size_control"))
@@ -71,6 +75,16 @@ MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
 
     if (_growth_speed_method == "function" && _func_v == NULL)
       mooseError("function is not specified for the function method that defines growth speed");
+
+    if (_growth_speed_method == "fatigue")
+    {
+      if (!isParamValid("max_growth_size") || !isParamValid("paris_law_c") || !isParamValid("paris_law_m"))
+        mooseError("max_growth_size and C & m of the Paris law are required parameters for the fatigue simulation");
+
+      _max_growth_size = getParam<Real>("max_growth_size");
+      _paris_law_c = getParam<Real>("paris_law_c");
+      _paris_law_m = getParam<Real>("paris_law_m");
+    }
 
     if (isParamValid("crack_front_nodes"))
     {
@@ -721,10 +735,12 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
   mooseAssert( !(_cfd && _active_boundary.size() != 1), "crack-front-definition using the cutter mesh only supports one active crack front segment for now");
 
   _active_direction.clear();
+  _effective_K.clear();
 
   for (unsigned int i = 0; i < _active_boundary.size(); ++i)
   {
     std::vector<Point> temp;
+    std::vector<Real> temp_K;
     Point dir;
 
     if (_inactive_boundary_pos.size() != 0)
@@ -732,6 +748,9 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
         dir(j) = 0;
       temp.push_back(dir);
+
+      if (_growth_speed_method == "fatigue")
+        temp_K.push_back(0.0);
     }
 
     unsigned int i1 = 1;
@@ -787,55 +806,47 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
         std::cout << "index, theta, k1, k2, dir(3): " << index << "  " << theta/3.14*180 << "    " << k1[index] << "  " << k2[index] << "    " << dir_cfc(0) << "  " << dir_cfc(1) << "    " << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
 
         temp.push_back(dir);
-
-        if (j == i1)
-        {
-          dir_cfc(0) = 1;
-          dir_cfc(1) = 0;
-          dir_cfc(2) = 0;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,0);
-          std::cout << "x" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,4);
-          std::cout << "x" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,8);
-          std::cout << "x" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir_cfc(0) = 0;
-          dir_cfc(1) = 1;
-          dir_cfc(2) = 0;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,0);
-          std::cout << "y" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,4);
-          std::cout << "y" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,8);
-          std::cout << "y" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir_cfc(0) = 0;
-          dir_cfc(1) = 0;
-          dir_cfc(2) = 1;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,0);
-          std::cout << "z" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,4);
-          std::cout << "z" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-          dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,8);
-          std::cout << "z" << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
-        }
-
       }
     }
 
     else
       mooseError("This growth_dir_method is not pre-defined!");
 
+    if (_growth_speed_method == "fatigue")
+    {
+      const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
+      const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
+
+      // loop over active front points
+      for (unsigned int j = i1; j < i2; ++j)
+      {
+        dof_id_type id = _active_boundary[i][j];
+        auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
+        unsigned int index = std::distance(_crack_front_points.begin(), it);
+
+        Real effective_K = sqrt(pow(k1[index],2) + 2 * pow(k2[index],2));
+        temp_K.push_back(effective_K);
+      }
+    }
+
     if (_inactive_boundary_pos.size() != 0)
     {
       for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
         dir(j) = 0;
       temp.push_back(dir);
+
+      if (_growth_speed_method == "fatigue")
+        temp_K.push_back(0.0);
     }
 
     _active_direction.push_back(temp);
+
+    if (_growth_speed_method == "fatigue")
+      _effective_K.push_back(temp_K);
   }
 
   // normalize the directional vector
+  // I think this normalization procedure needs improvement
   Real maxl = 0;
 
   for (unsigned int i = 0; i < _active_direction.size(); ++i)
@@ -856,6 +867,31 @@ void
 MeshCut3DUserObject::growFront()
 {
   _front.clear();
+
+  if (_growth_speed_method == "fatigue")
+  {
+    _max_K = std::numeric_limits<double>::lowest();
+    for (const auto& v : _effective_K)
+    {
+        Real current_max = *std::max_element(v.cbegin(), v.cend());
+        _max_K = _max_K < current_max ? current_max : _max_K;
+    }
+
+    for (unsigned int i = 0; i < _effective_K.size(); ++i)
+      writeVectorReal(_effective_K[i],"effective K");
+
+    // calculate loading cycles dN
+    unsigned long int dN = (unsigned long int) (_max_growth_size / (_paris_law_c * pow(_max_K, _paris_law_m)));
+    _dN.push_back(dN);
+    _N.push_back(_N.size() == 0 ? dN : dN + _N[_N.size()-1]);
+    _max_K_his.push_back(_max_K);
+
+    writeVectorLongInt(_dN,"dN");
+    writeVectorLongInt(_N,"N");
+    writeVectorReal(_max_K_his,"max K");
+    std::cout << "======================" << std::endl;
+    std::cout << "======================" << std::endl;
+  }
 
   for (unsigned int i = 0; i < _active_boundary.size(); ++i)
   {
@@ -885,13 +921,19 @@ MeshCut3DUserObject::growFront()
       if (_growth_speed_method == "function")
         for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
         {
-          Real v_avr = _func_v->value(0, Point(0, 0, 0));
-          x(k) = this_point(k) + dir(k) * v_avr;   // used to multiply _size_control too
+          Real velo = _func_v->value(0, Point(0, 0, 0));
+          x(k) = this_point(k) + dir(k) * velo;   // used to multiply _size_control too
         }
 
       else if (_growth_speed_method == "fatigue")
       {
-        
+        Real effective_K = _effective_K[i][j];
+        Real growth_size = _max_growth_size * pow(effective_K/_max_K, _paris_law_m);
+
+        for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
+        {
+          x(k) = this_point(k) + dir(k) * growth_size;   // used to multiply _size_control too
+        }
       }
 
       else
@@ -946,7 +988,12 @@ MeshCut3DUserObject::findFrontIntersection()
       mooseAssert(this_node, "Node is NULL");
       Point & p2 = *this_node;
 
-      node_id = _front[i][1];
+      // used to be node_id = _front[i][1]; can be improved
+      if (_front[i].size() >= 4)
+        node_id = _front[i][2];
+      else
+        node_id = _front[i][1];
+
       this_node = _cut_mesh->node_ptr(node_id);
       mooseAssert(this_node, "Node is NULL");
       Point & p1 = *this_node;
@@ -956,7 +1003,12 @@ MeshCut3DUserObject::findFrontIntersection()
       mooseAssert(this_node, "Node is NULL");
       Point & p4 = *this_node;
 
-      node_id = _front[i][_front[i].size() - 2];
+      // used to be node_id = _front[i][_front[i].size() - 2]; can be improved
+      if (_front[i].size() >= 4)
+        node_id = _front[i][_front[i].size() - 3];
+      else
+        node_id = _front[i][_front[i].size() - 2];
+
       this_node = _cut_mesh->node_ptr(node_id);
       mooseAssert(this_node, "Node is NULL");
       Point & p3 = *this_node;
@@ -1356,6 +1408,26 @@ MeshCut3DUserObject::writeCutMesh()
 
 void
 MeshCut3DUserObject::writeVector(std::vector<dof_id_type> & vec, std::string name)
+{
+  std::cout << name << ": " << std::endl;
+  for (unsigned int i = 0; i < vec.size(); ++i)
+  {
+    std::cout << vec[i] << std::endl;
+  }
+}
+
+void
+MeshCut3DUserObject::writeVectorReal(std::vector<Real> & vec, std::string name)
+{
+  std::cout << name << ": " << std::endl;
+  for (unsigned int i = 0; i < vec.size(); ++i)
+  {
+    std::cout << vec[i] << std::endl;
+  }
+}
+
+void
+MeshCut3DUserObject::writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name)
 {
   std::cout << name << ": " << std::endl;
   for (unsigned int i = 0; i < vec.size(); ++i)

@@ -31,14 +31,11 @@
     size_control = 1  # was 0.125
     n_step_growth = 1
     growth_dir_method = 'max_hoop_stress'
-    growth_speed_method = 'fatigue'
-    max_growth_size = 0.25
-    paris_law_c = 1e-13
-    paris_law_m = 2.5
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
-    crack_front_nodes = '9 8 7 6 5 4 3 2 1'
+    function_v = growth_func_v
+    crack_front_nodes = '1 2 3 4 5 6 7 8 9'
   [../]
 []
 
@@ -54,6 +51,10 @@
   [./growth_func_z]
     type = ParsedFunction
     value = z
+  [../]
+  [./growth_func_v]
+    type = ParsedFunction
+    value = 0.15   # was 1.25
   [../]
 []
 
@@ -94,9 +95,6 @@
   displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
   number_points_from_provider = 9
-  crack_end_direction_method = CrackTangentVector
-  crack_tangent_vector_end_1 = '1 0 0'
-  crack_tangent_vector_end_2 = '0 -1 0'
   crack_direction_method = CurvedCrackFront
   intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
   radius_inner = '0.3'

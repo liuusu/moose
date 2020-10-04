@@ -87,6 +87,13 @@ protected:
   bool _stop;
   bool _grow;
 
+  /// the max growth size at the crack front in each increment of a fatigue simulation
+  Real _max_growth_size;
+
+  /// Paris law parameters for fatigue: da/dN = C*(K_effective)^m
+  Real _paris_law_c;
+  Real _paris_law_m;
+
   /// Boundary nodes of the cutter mesh
   std::vector<dof_id_type> _boundary;
 
@@ -113,6 +120,17 @@ protected:
 
   /// Growth direction for active boundaries
   std::vector<std::vector<Point>> _active_direction;
+
+  /// Effective K for active boundaries
+  std::vector<std::vector<Real>> _effective_K;
+
+  /// Maximum effective K
+  Real _max_K;
+
+  /// Fatigue life
+  std::vector<unsigned long int> _dN;
+  std::vector<unsigned long int> _N;
+  std::vector<Real> _max_K_his;
 
   /// Inactive boundary
   std::vector<unsigned int> _inactive_boundary_pos;
@@ -230,4 +248,6 @@ protected:
 
    void writeCutMesh();
    void writeVector(std::vector<dof_id_type> & vec, std::string name);
+   void writeVectorReal(std::vector<Real> & vec, std::string name);
+   void writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name);
 };
