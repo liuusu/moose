@@ -10,33 +10,43 @@
 []
 
 [Mesh]
-  file = ellipse.e
-  displacements = 'disp_x disp_y disp_z'
+  type = GeneratedMesh
+  dim = 3
+  nx = 15
+  ny = 15
+  nz = 3
+  xmin = -0.5
+  xmax = 0.5
+  ymin = -0.5
+  ymax = 0.5
+  zmin = -0.25
+  zmax = 0.25
+  elem_type = HEX8
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_ellipse_crack2.xda
-    size_control = 1  # was 0.125
+    mesh_file = mesh_penny_crack7.xda
+    size_control = 0.125
     n_step_growth = 1
-    growth_dir_method = 'max_hoop_stress'
+    growth_dir_method = 'function'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
     function_v = growth_func_v
-    crack_front_nodes = '17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1'
+    crack_front_nodes = '9 8 7 6 5 4 3 2 1'
   [../]
 []
 
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value = x
+    value = (x+0.5)
   [../]
   [./growth_func_y]
     type = ParsedFunction
-    value = y
+    value = (y+0.5)
   [../]
   [./growth_func_z]
     type = ParsedFunction
@@ -44,7 +54,7 @@
   [../]
   [./growth_func_v]
     type = ParsedFunction
-    value = 0.011
+    value = 0.15   # was 1.25
   [../]
 []
 
@@ -84,16 +94,17 @@
   integrals = 'Jintegral InteractionIntegralKI InteractionIntegralKII'
   displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
-  number_points_from_provider = 17
-  crack_end_direction_method = CrackTangentVector
-  crack_tangent_vector_end_1 = '1 0 0'
-  crack_tangent_vector_end_2 = '-1 0 0'
+  number_points_from_provider = 9
+  crack_end_direction_method = CrackDirectionVector
+  crack_direction_vector_end_1 = '0 1 0'
+  crack_direction_vector_end_2 = '1 0 0'
   crack_direction_method = CurvedCrackFront
-  radius_inner = '0.01'
-  radius_outer = '0.05'
+  intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
+  radius_inner = '0.3'
+  radius_outer = '0.6'
   poissons_ratio = 0.3
   youngs_modulus = 207000
-  block = 1
+  block = 0
   incremental = true
   solid_mechanics = true
 []
@@ -141,51 +152,52 @@
     variable = SED
     property = strain_energy_density
     execute_on = timestep_end
-    block = 1
+    block = 0
+  [../]
+[]
+
+[Functions]
+  [./top_trac_z]
+    type = ConstantFunction
+    value = 10
   [../]
 []
 
 [BCs]
   [./top_z]
-    type = NeumannBC
-    boundary = top
+    type = FunctionNeumannBC
+    boundary = front
     variable = disp_z
-    value = 1
+    function = top_trac_z
   [../]
-  [./bottom_z]
-    type = NeumannBC
-    boundary = bottom
-    variable = disp_z
-    value = -1
-  [../]
-  [./sym]
+  [./bottom_x]
     type = DirichletBC
-    boundary = sym
+    boundary = back
     variable = disp_x
     value = 0.0
   [../]
-  [./fix_x]
+  [./bottom_y]
     type = DirichletBC
-    boundary = fix
-    variable = disp_x
-    value = 0.0
-  [../]
-  [./fix_y]
-    type = DirichletBC
-    boundary = fix
+    boundary = back
     variable = disp_y
     value = 0.0
   [../]
-  [./fix_z]
+  [./bottom_z]
     type = DirichletBC
-    boundary = fix
+    boundary = back
     variable = disp_z
     value = 0.0
   [../]
-  [./constrain]
+  [./sym_y]
     type = DirichletBC
-    boundary = constrain
-    variable = disp_z
+    boundary = bottom
+    variable = disp_y
+    value = 0.0
+  [../]
+  [./sym_x]
+    type = DirichletBC
+    boundary = left
+    variable = disp_x
     value = 0.0
   [../]
 []
@@ -193,7 +205,7 @@
 [Materials]
   [./linelast]
     type = Elastic
-    block = 1
+    block = 0
     disp_x = disp_x
     disp_y = disp_y
     disp_z = disp_z
@@ -229,12 +241,12 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 8.0
+  end_time = 3.0
 []
 
 [Outputs]
   csv = true
-  file_base = out/ellipse
+  file_base = out/penny_crack_multi
   execute_on = timestep_end
   exodus = true
   [./console]
