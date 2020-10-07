@@ -17,6 +17,7 @@
 #include "libmesh/edge_edge2.h"
 #include "libmesh/serial_mesh.h"
 #include "libmesh/plane.h"
+#include "libmesh/mesh_tools.h"
 #include "Function.h"
 
 registerMooseObject("XFEMApp", MeshCut3DUserObject);
@@ -124,7 +125,6 @@ MeshCut3DUserObject::initialSetup()
     findBoundaryNodes();
     findBoundaryEdges();
     sortBoundaryNodes();
-    // refineBoundary();
   }
 }
 
@@ -384,42 +384,12 @@ MeshCut3DUserObject::isInsideCutPlane(const std::vector<Point> & vertices, const
 void
 MeshCut3DUserObject::findBoundaryNodes()
 {
-  unsigned int n_nodes = _cut_mesh->n_nodes();
-  std::vector<Real> angle(n_nodes, 0); // this assumes that the cutter mesh has compressed node id
-  std::vector<dof_id_type> node_id(_cut_elem_nnode);
-
-  std::vector<Point> vertices(_cut_elem_nnode);
-
-  for (const auto & cut_elem : _cut_mesh->element_ptr_range())
+  auto boundary_node_ids = MeshTools::find_boundary_nodes(*_cut_mesh);
+  for (auto it = boundary_node_ids.cbegin(); it != boundary_node_ids.cend(); it++)
   {
-    for (unsigned int i = 0; i < _cut_elem_nnode; ++i)
-    {
-      Node * this_node = cut_elem->node_ptr(i);
-      Point & this_point = *this_node;
-      vertices[i] = this_point;
-      node_id[i] = this_node->id();
-    }
-
-    for (unsigned int i = 0; i < _cut_elem_nnode; ++i)
-      mooseAssert(node_id[i] < n_nodes, "Node ID is out of range");
-
-    angle[node_id[0]] += Xfem::angle_rad_3d(&vertices[2](0), &vertices[0](0), &vertices[1](0));
-    angle[node_id[1]] += Xfem::angle_rad_3d(&vertices[0](0), &vertices[1](0), &vertices[2](0));
-    angle[node_id[2]] += Xfem::angle_rad_3d(&vertices[1](0), &vertices[2](0), &vertices[0](0));
-  }
-
-  // In each element, angles at three vertices are calculated.  Angles associated with all nodes are
-  // evaluated.
-  // Interior nodes will have a total angle = 2*pi; otherwise, it is a boundary node
-  // This assumes the cutter surface is flat.
-  for (const auto & node : _cut_mesh->node_ptr_range())
-  {
-    dof_id_type id = node->id();
-    if (!MooseUtils::relativeFuzzyEqual(angle[id], libMesh::pi * 2))
-    {
-      std::vector<dof_id_type> neighbors;
-      _boundary_map[id] = neighbors;
-    }
+    dof_id_type id = *it;
+    std::vector<dof_id_type> neighbors;
+    _boundary_map[id] = neighbors;
   }
 }
 
