@@ -51,24 +51,22 @@ public:
                                      std::vector<Xfem::CutFace> & cut_faces,
                                      Real time) const override;
 
-  /// Active boundary nodes where growth is allowed
-  std::vector<std::vector<dof_id_type>> _active_boundary;
-
-  /// Inactive boundary
-  std::vector<unsigned int> _inactive_boundary_pos;
-
-  /// updated crack front definition
-  /// they are in the same order as defined in the input but the number of nodes may increase
-  /// its difference from _front is that: _front does not necessarily follow the order of crack front definition
-  /// therefore, _crack_front_points is generated from _front with the order of crack front definition
-  /// limitation: this approach does not currently support the growth of one crack front into two
-  std::vector<dof_id_type> _crack_front_points;
-
   /**
     Find all active boundary nodes in the cutter mesh
     Find boundary nodes that will grow; nodes outside of the structural mesh are inactive
    */
   void findActiveBoundaryNodes();
+
+  /**
+    Get crack front points in the active segment
+    -1 means inactive; positive is the point's index in the Crack Front Definition starting from 0
+   */
+  std::vector<int> getFrontPointsIndex();
+
+  /**
+    Return growth size at the active boundary to the mesh cutter
+   */
+  void setSubCriticalGrowthSize(std::vector<Real> & growth_size);
 
 protected:
   /// The cutter mesh
@@ -83,6 +81,13 @@ protected:
 
   /// The crack front definition
   CrackFrontDefinition * _crack_front_definition;
+
+  /// updated crack front definition
+  /// they are in the same order as defined in the input but the number of nodes may increase
+  /// its difference from _front is that: _front does not necessarily follow the order of crack front definition
+  /// therefore, _crack_front_points is generated from _front with the order of crack front definition
+  /// limitation: this approach does not currently support the growth of one crack front into two
+  std::vector<dof_id_type> _crack_front_points;
 
   /// The direction method for growing mesh at the front
   std::string _growth_dir_method;
@@ -116,6 +121,12 @@ protected:
   /// Boundary nodes of the cutter mesh
   std::vector<dof_id_type> _boundary;
 
+  /// Active boundary nodes where growth is allowed
+  std::vector<std::vector<dof_id_type>> _active_boundary;
+
+  /// Inactive boundary
+  std::vector<unsigned int> _inactive_boundary_pos;
+
   /// front nodes that are grown from the crack front definition defined in the input
   /// therefore, they are (1) in the same order as defined in the input and (2) the number of nodes does not change
   std::vector<dof_id_type> _tracked_crack_front_points;
@@ -131,7 +142,8 @@ protected:
   /// Growth direction for active boundaries
   std::vector<std::vector<Point>> _active_direction;
 
-  /// Effective K for active boundaries
+  /// Growth size for the active boundary in a subcritical simulation
+  std::vector<Real> _growth_size;
   std::vector<std::vector<Real>> _effective_K;
 
   /// Maximum effective K
@@ -242,13 +254,13 @@ protected:
   /**
     Parsed functions of front growth
    */
-   const Function * _func_x;
-   const Function * _func_y;
-   const Function * _func_z;
-   const Function * _func_v;
+  const Function * _func_x;
+  const Function * _func_y;
+  const Function * _func_z;
+  const Function * _func_v;
 
-   void writeCutMesh();
-   void writeVector(std::vector<dof_id_type> & vec, std::string name);
-   void writeVectorReal(std::vector<Real> & vec, std::string name);
-   void writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name);
+  void writeCutMesh();
+  void writeVector(std::vector<dof_id_type> & vec, std::string name);
+  void writeVectorReal(std::vector<Real> & vec, std::string name);
+  void writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name);
 };

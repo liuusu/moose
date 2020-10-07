@@ -926,8 +926,12 @@ MeshCut3DUserObject::growFront()
 
       else if (_growth_speed_method == "fatigue")
       {
+        std::cout << "==========================" << std::endl;
+        std::cout << "==========================" << std::endl;
+        std::cout << _func_v->value(0, Point(0, 0, 0)) << std::endl;
+
         Real effective_K = _effective_K[i][j];
-        Real growth_size = _max_growth_size * pow(effective_K/_max_K, _paris_law_m);
+        Real growth_size = _growth_size[j];
         std::cout << growth_size << "growth" << std::endl;
 
         for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
@@ -1404,6 +1408,38 @@ MeshCut3DUserObject::writeCutMesh()
     myfile << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
   }
   myfile.close();
+}
+
+std::vector<int>
+MeshCut3DUserObject::getFrontPointsIndex()
+{
+  // Crack front definition using the cutter mesh currently only supports one active crack front segment
+  unsigned int ibnd = 0;
+  unsigned int size_this_segment = _active_boundary[ibnd].size();
+  unsigned int n_inactive_nodes = _inactive_boundary_pos.size();
+
+  std::vector<int> index(size_this_segment, -1);
+
+  unsigned int i1 = n_inactive_nodes == 0 ? 0 : 1;
+  unsigned int i2 = n_inactive_nodes == 0 ? size_this_segment : size_this_segment-1;
+
+  // loop over active front points
+  for (unsigned int j = i1; j < i2; ++j)
+  {
+    dof_id_type id = _active_boundary[ibnd][j];
+    auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
+    index[j] = std::distance(_crack_front_points.begin(), it);
+  }
+
+  return index;
+}
+
+void
+MeshCut3DUserObject::setSubCriticalGrowthSize(std::vector<Real> & growth_size)
+{
+  unsigned int size_this_segment = growth_size.size();
+  _growth_size = growth_size;
+  writeVectorReal(_growth_size,"%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 }
 
 void

@@ -36,15 +36,15 @@ public:
 
 protected:
   /// The value of the variable at the desired location
-  Real _dN_this;
+  unsigned long int _dN_this;
   MeshCut3DUserObject * _cutter;
   Real _max_growth_size;
   Real _paris_law_c;
   Real _paris_law_m;
 
   /// Effective K for active boundaries
-  std::vector<std::vector<Real>> _effective_K;
-  std::vector<std::vector<Real>> _growth_size;
+  std::vector<Real> _effective_K;
+  std::vector<Real> _growth_size;
 
   /// Maximum effective K
   Real _max_K;
@@ -53,8 +53,4 @@ protected:
   std::vector<unsigned long int> _dN;
   std::vector<unsigned long int> _N;
   std::vector<Real> _max_K_his;
-
-  void writeVector(std::vector<dof_id_type> & vec, std::string name);
-  void writeVectorReal(std::vector<Real> & vec, std::string name);
-  void writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name);
 };
