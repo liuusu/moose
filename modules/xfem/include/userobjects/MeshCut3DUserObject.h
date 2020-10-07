@@ -51,6 +51,25 @@ public:
                                      std::vector<Xfem::CutFace> & cut_faces,
                                      Real time) const override;
 
+  /// Active boundary nodes where growth is allowed
+  std::vector<std::vector<dof_id_type>> _active_boundary;
+
+  /// Inactive boundary
+  std::vector<unsigned int> _inactive_boundary_pos;
+
+  /// updated crack front definition
+  /// they are in the same order as defined in the input but the number of nodes may increase
+  /// its difference from _front is that: _front does not necessarily follow the order of crack front definition
+  /// therefore, _crack_front_points is generated from _front with the order of crack front definition
+  /// limitation: this approach does not currently support the growth of one crack front into two
+  std::vector<dof_id_type> _crack_front_points;
+
+  /**
+    Find all active boundary nodes in the cutter mesh
+    Find boundary nodes that will grow; nodes outside of the structural mesh are inactive
+   */
+  void findActiveBoundaryNodes();
+
 protected:
   /// The cutter mesh
   std::unique_ptr<MeshBase> _cut_mesh;
@@ -101,12 +120,6 @@ protected:
   /// therefore, they are (1) in the same order as defined in the input and (2) the number of nodes does not change
   std::vector<dof_id_type> _tracked_crack_front_points;
 
-  /// updated crack front definition
-  /// they are in the same order as defined in the input but the number of nodes may increase
-  /// its difference from _front is that: _front does not necessarily follow the order of crack front definition
-  /// therefore, _crack_front_points is generated from _front with the order of crack front definition
-  /// limitation: this approach does not currently support the growth of one crack front into two
-  std::vector<dof_id_type> _crack_front_points;
   bool _cfd;
 
   /// Edges at the boundary
@@ -114,9 +127,6 @@ protected:
 
   /// A map of boundary nodes and their neighbors
   std::map<dof_id_type, std::vector<dof_id_type>> _boundary_map;
-
-  /// Active boundary nodes where growth is allowed
-  std::vector<std::vector<dof_id_type>> _active_boundary;
 
   /// Growth direction for active boundaries
   std::vector<std::vector<Point>> _active_direction;
@@ -131,9 +141,6 @@ protected:
   std::vector<unsigned long int> _dN;
   std::vector<unsigned long int> _N;
   std::vector<Real> _max_K_his;
-
-  /// Inactive boundary
-  std::vector<unsigned int> _inactive_boundary_pos;
 
   /// New boundary after growth
   std::vector<std::vector<dof_id_type>> _front;
@@ -196,12 +203,6 @@ protected:
     If boundary nodes are too sparse, add nodes in between
    */
   void refineBoundary();
-
-  /**
-    Find all active boundary nodes in the cutter mesh
-    Find boundary nodes that will grow; nodes outside of the structural mesh are inactive
-   */
-  void findActiveBoundaryNodes();
 
   /**
     Find growth direction at each active node

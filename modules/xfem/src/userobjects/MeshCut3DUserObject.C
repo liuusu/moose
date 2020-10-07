@@ -752,6 +752,14 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
     std::cout << std::endl;
     // ------------------
 
+    std::cout << _active_boundary[0][0] << std::endl;
+    std::cout << _active_boundary[0][1] << std::endl;
+    std::cout << _crack_front_points[0] << std::endl;
+    std::cout << _crack_front_points[1] << std::endl;
+    std::cout << _crack_front_points[2] << std::endl;
+    std::cout << _crack_front_points[3] << std::endl;
+
+
     // determine growth direction based on functions defined in the input file
     if (_growth_dir_method == "function")
       // loop over active front points
@@ -920,6 +928,7 @@ MeshCut3DUserObject::growFront()
       {
         Real effective_K = _effective_K[i][j];
         Real growth_size = _max_growth_size * pow(effective_K/_max_K, _paris_law_m);
+        std::cout << growth_size << "growth" << std::endl;
 
         for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
         {
