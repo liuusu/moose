@@ -53,7 +53,7 @@
   [../]
   [./growth_func_v]
     type = ParsedFunction
-    value = 0.1
+    value = 0.15
   [../]
 []
 
@@ -139,7 +139,7 @@
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 5.0
+  end_time = 3.0
   max_xfem_update = 1
 []
 

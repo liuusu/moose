@@ -246,7 +246,7 @@
 
 [Outputs]
   csv = true
-  file_base = out/penny_crack_out2f
+  file_base = penny_crack_outf
   execute_on = timestep_end
   exodus = true
   [./console]

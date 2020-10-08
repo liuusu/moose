@@ -4,6 +4,7 @@
 []
 
 [XFEM]
+  geometric_cut_userobjects = 'cut_mesh'
   qrule = volfrac
   output_cut_plane = true
 []
@@ -11,55 +12,72 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 15
-  ny = 15
-  nz = 3
-  xmin = -0.5
-  xmax = 0.5
-  ymin = -0.5
-  ymax = 0.5
-  zmin = -0.25
-  zmax = 0.25
+  nx = 5
+  ny = 5
+  nz = 2
+  xmin = 0.0
+  xmax = 1.0
+  ymin = 0.0
+  ymax = 1.0
+  zmin = 0.0
+  zmax = 0.2
   elem_type = HEX8
 []
 
 [UserObjects]
-  [./circle_cut_uo]
-    type = CircleCutUserObject
-    cut_data = '-0.5 -0.5 0
-                0.148586 -0.5 0
-                -0.5 0.148586 0'
+  [./cut_mesh]
+    type = MeshCut3DUserObject
+    mesh_file = mesh_edge_crack.xda
+    growth_dir_method = 'function'
+    size_control = 1
+    n_step_growth = 1
+    growth_speed_method = 'fatigue'
+    function_x = growth_func_x
+    function_y = growth_func_y
+    function_z = growth_func_z
+    function_v = growth_func_v
+    crack_front_nodes = '7 6 5 4'
   [../]
 []
 
-[AuxVariables]
-  [./SED]
-   order = CONSTANT
-    family = MONOMIAL
+[Functions]
+  [./growth_func_x]
+    type = ParsedFunction
+    value = 1
+  [../]
+  [./growth_func_y]
+    type = ParsedFunction
+    value = 0
+  [../]
+  [./growth_func_z]
+    type = ParsedFunction
+    value = 0
+  [../]
+  [./growth_func_v]
+    type = ParsedFunction
+    vars = 'dN'
+    vals = 'fatigue'
+    value = dN
+  [../]
+[]
+
+[Postprocessors]
+  [./fatigue]
+    type = ParisLaw
+    max_growth_size = 0.1
+    paris_law_c = 1e-13
+    paris_law_m = 2.5
   [../]
 []
 
 [DomainIntegral]
   integrals = 'Jintegral InteractionIntegralKI InteractionIntegralKII'
-  disp_x = disp_x
-  disp_y = disp_y
-  disp_z = disp_z
-  crack_front_points = '-0.506364 0.180195 0
-                        -0.374482 0.136566 0
-                        -0.252475 0.0994962 0
-                        -0.140094 0.0394035 0
-                        -0.0415005 -0.0415005 0
-                        0.0392734 -0.139964 0
-                        0.0993661 -0.252475 0
-                        0.136436 -0.374482 0
-                        0.175326 -0.502475 0'
-  crack_end_direction_method = CrackDirectionVector
-  crack_direction_vector_end_1 = '0 1 0'
-  crack_direction_vector_end_2 = '1 0 0'
+  displacements = 'disp_x disp_y disp_z'
+  crack_front_points_provider = cut_mesh
+  number_points_from_provider = 4
   crack_direction_method = CurvedCrackFront
-  intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
-  radius_inner = '0.3'
-  radius_outer = '0.6'
+  radius_inner = '0.15'
+  radius_outer = '0.45'
   poissons_ratio = 0.3
   youngs_modulus = 207000
   block = 0
@@ -74,18 +92,8 @@
   [../]
 []
 
-[AuxKernels]
-  [./SED]
-    type = MaterialRealAux
-    variable = SED
-    property = strain_energy_density
-    execute_on = timestep_end
-    block = 0
-  [../]
-[]
-
 [Functions]
-  [./top_trac_z]
+  [./top_trac_y]
     type = ConstantFunction
     value = 10
   [../]
@@ -93,40 +101,28 @@
 
 
 [BCs]
-  [./top_z]
+  [./top_y]
     type = FunctionNeumannBC
-    boundary = front
-    variable = disp_z
-    function = top_trac_z
+    boundary = top
+    variable = disp_y
+    function = top_trac_y
   [../]
   [./bottom_x]
     type = DirichletBC
-    boundary = back
+    boundary = bottom
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
     type = DirichletBC
-    boundary = back
+    boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
     type = DirichletBC
-    boundary = back
-    variable = disp_z
-    value = 0.0
-  [../]
-  [./sym_y]
-    type = DirichletBC
     boundary = bottom
-    variable = disp_y
-    value = 0.0
-  [../]
-  [./sym_x]
-    type = DirichletBC
-    boundary = left
-    variable = disp_x
+    variable = disp_z
     value = 0.0
   [../]
 []
@@ -136,9 +132,11 @@
     type = ComputeIsotropicElasticityTensor
     youngs_modulus = 207000
     poissons_ratio = 0.3
+    block = 0
   [../]
   [./stress]
     type = ComputeFiniteStrainElasticStress
+    block = 0
   [../]
 []
 
@@ -162,18 +160,19 @@
 
 # controls for nonlinear iterations
   nl_max_its = 15
-  nl_rel_tol = 1e-10
+  nl_rel_tol = 1e-12
   nl_abs_tol = 1e-10
 
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 1.0
+  end_time = 4.0
+  max_xfem_update = 1
 []
 
 [Outputs]
-  file_base = penny_crack_out
-  execute_on = timestep_end
+  file_base = edge_crack_3d_fatigue_out
+  execute_on = 'timestep_end'
   exodus = true
   [./console]
     type = Console

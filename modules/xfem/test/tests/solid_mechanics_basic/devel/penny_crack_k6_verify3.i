@@ -182,7 +182,7 @@
 []
 
 [Outputs]
-  file_base = out/penny_crack_out
+  file_base = penny_crack_out
   execute_on = timestep_end
   exodus = true
   [./console]

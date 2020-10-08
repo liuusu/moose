@@ -243,7 +243,7 @@
 
 [Outputs]
   csv = true
-  file_base = out/penny_crack_multi
+  file_base = penny_crack_out
   execute_on = timestep_end
   exodus = true
   [./console]

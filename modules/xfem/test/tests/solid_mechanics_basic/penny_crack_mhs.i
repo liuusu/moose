@@ -1,6 +1,6 @@
 [GlobalParams]
-  order = FIRST
-  family = LAGRANGE
+  displacements = 'disp_x disp_y disp_z'
+  volumetric_locking_correction = true
 []
 
 [XFEM]
@@ -12,8 +12,8 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 9
-  ny = 9
+  nx = 7
+  ny = 7
   nz = 3
   xmin = -0.5
   xmax = 0.5
@@ -27,15 +27,15 @@
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_penny_crack7.xda
-    size_control = 1  # was 0.125
+    mesh_file = mesh_penny_crack.xda
+    size_control = 1
     n_step_growth = 1
-    growth_dir_method = 'function'
+    growth_dir_method = 'max_hoop_stress'
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
     function_v = growth_func_v
-    crack_front_nodes = '9 8 7 6 5 4 3 2 1'
+    crack_front_nodes = '7 6 5 4 3 2 1'
   [../]
 []
 
@@ -58,105 +58,41 @@
   [../]
 []
 
-[Variables]
-  [./disp_x]
-  [../]
-  [./disp_y]
-  [../]
-  [./disp_z]
-  [../]
-[]
-
-[AuxVariables]
-  [./stress_xx]
-    order = CONSTANT
-    family = MONOMIAL
-  [../]
-  [./stress_yy]
-    order = CONSTANT
-    family = MONOMIAL
-  [../]
-  [./stress_zz]
-    order = CONSTANT
-    family = MONOMIAL
-  [../]
-  [./vonmises]
-    order = CONSTANT
-    family = MONOMIAL
-  [../]
-  [./SED]
-   order = CONSTANT
-    family = MONOMIAL
-  [../]
-[]
-
 [DomainIntegral]
   integrals = 'Jintegral InteractionIntegralKI InteractionIntegralKII'
   displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
-  number_points_from_provider = 9
-  crack_end_direction_method = CrackDirectionVector
-  crack_direction_vector_end_1 = '0 1 0'
-  crack_direction_vector_end_2 = '1 0 0'
+  number_points_from_provider = 7
+  crack_end_direction_method = CrackTangentVector
+  crack_tangent_vector_end_1 = '1 0 0'
+  crack_tangent_vector_end_2 = '0 -1 0'
   crack_direction_method = CurvedCrackFront
   intersecting_boundary = '1 4' #It would be ideal to use this, but can't use with XFEM yet
-  radius_inner = '0.3'
-  radius_outer = '0.6'
+  radius_inner = '0.1'
+  radius_outer = '0.3'
   poissons_ratio = 0.3
   youngs_modulus = 207000
   block = 0
   incremental = true
-  solid_mechanics = true
 []
 
-[SolidMechanics]
-  [./solid]
-    disp_x = disp_x
-    disp_y = disp_y
-    disp_z = disp_z
-    use_displaced_mesh = true
-  [../]
-[]
-
-[AuxKernels]
-  [./stress_xx]
-    type = MaterialTensorAux
-    tensor = stress
-    variable = stress_xx
-    index = 0
-    execute_on = timestep_end
-  [../]
-  [./stress_yy]
-    type = MaterialTensorAux
-    tensor = stress
-    variable = stress_yy
-    index = 1
-    execute_on = timestep_end
-  [../]
-  [./stress_zz]
-    type = MaterialTensorAux
-    tensor = stress
-    variable = stress_zz
-    index = 2
-    execute_on = timestep_end
-  [../]
-  [./vonmises]
-    type = MaterialTensorAux
-    tensor = stress
-    variable = vonmises
-    quantity = vonmises
-    execute_on = timestep_end
-  [../]
-  [./SED]
-    type = MaterialRealAux
-    variable = SED
-    property = strain_energy_density
-    execute_on = timestep_end
-    block = 0
+[Modules/TensorMechanics/Master]
+  [./all]
+    strain = FINITE
+    add_variables = true
+    generate_output = 'stress_xx stress_yy stress_zz vonmises_stress'
   [../]
 []
 
 [Functions]
+  [./top_trac_x]
+    type = ConstantFunction
+    value = -5
+  [../]
+  [./top_trac_y]
+    type = ConstantFunction
+    value = -5
+  [../]
   [./top_trac_z]
     type = ConstantFunction
     value = 10
@@ -164,6 +100,18 @@
 []
 
 [BCs]
+  [./top_x]
+    type = FunctionNeumannBC
+    boundary = front
+    variable = disp_x
+    function = top_trac_x
+  [../]
+  [./top_y]
+    type = FunctionNeumannBC
+    boundary = front
+    variable = disp_y
+    function = top_trac_y
+  [../]
   [./top_z]
     type = FunctionNeumannBC
     boundary = front
@@ -203,15 +151,15 @@
 []
 
 [Materials]
-  [./linelast]
-    type = Elastic
-    block = 0
-    disp_x = disp_x
-    disp_y = disp_y
-    disp_z = disp_z
-    poissons_ratio = 0.3
+  [./elasticity_tensor]
+    type = ComputeIsotropicElasticityTensor
     youngs_modulus = 207000
-    compute_JIntegral = true
+    poissons_ratio = 0.3
+    block = 0
+  [../]
+  [./stress]
+    type = ComputeFiniteStrainElasticStress
+    block = 0
   [../]
 []
 
@@ -246,7 +194,7 @@
 
 [Outputs]
   csv = true
-  file_base = penny_crack_out
+  file_base = penny_crack_mhs_out
   execute_on = timestep_end
   exodus = true
   [./console]

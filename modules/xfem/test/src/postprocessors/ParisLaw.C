@@ -7,7 +7,7 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "PPFatigue.h"
+#include "ParisLaw.h"
 
 // MOOSE includes
 #include "Function.h"
@@ -17,11 +17,11 @@
 
 #include "libmesh/system.h"
 
-registerMooseObject("MooseApp", PPFatigue);
+registerMooseObject("MooseApp", ParisLaw);
 
 template <>
 InputParameters
-validParams<PPFatigue>()
+validParams<ParisLaw>()
 {
   InputParameters params = validParams<GeneralPostprocessor>();
   params.addParam<Real>(
@@ -33,7 +33,7 @@ validParams<PPFatigue>()
   return params;
 }
 
-PPFatigue::PPFatigue(const InputParameters & parameters)
+ParisLaw::ParisLaw(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     _cutter(&_fe_problem.getUserObject<MeshCut3DUserObject>("cut_mesh")) // should be deleted
 {
@@ -46,13 +46,13 @@ PPFatigue::PPFatigue(const InputParameters & parameters)
 }
 
 void
-PPFatigue::initialize()
+ParisLaw::initialize()
 {
   _dN = 0;
 }
 
 void
-PPFatigue::execute()
+ParisLaw::execute()
 {
   // Generate _active_boundary and _inactive_boundary_pos;
   // This is a duplicated call before the one in MeshCut3DUserObject;
@@ -106,7 +106,7 @@ PPFatigue::execute()
 }
 
 Real
-PPFatigue::getValue()
+ParisLaw::getValue()
 {
   return _dN * 1.0;
 }

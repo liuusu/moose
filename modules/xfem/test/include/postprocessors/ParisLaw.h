@@ -13,10 +13,10 @@
 #include "MeshCut3DUserObject.h"
 
 // Forward Declarations
-class PPFatigue;
+class ParisLaw;
 
 template <>
-InputParameters validParams<PPFatigue>();
+InputParameters validParams<ParisLaw>();
 
 /**
  * Compute the value of a variable at a specified location.
@@ -24,10 +24,10 @@ InputParameters validParams<PPFatigue>();
  * Warning: This postprocessor may result in undefined behavior if utilized with
  * non-continuous elements and the point being located lies on an element boundary.
  */
-class PPFatigue : public GeneralPostprocessor
+class ParisLaw : public GeneralPostprocessor
 {
 public:
-  PPFatigue(const InputParameters & parameters);
+  ParisLaw(const InputParameters & parameters);
 
   virtual void initialize() override;
   virtual void execute() override;

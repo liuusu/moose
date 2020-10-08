@@ -50,10 +50,21 @@
     requirement = 'The XFEM module shall permit definition of a stationary crack in a 3D mechanics model with XFEM, where the crack is defined using a rectangular cutting plane by RectangleCutUserObject'
     design = 'RectangleCutUserObject.md'
   [../]
+  [./edge_crack_3d_fatigue]
+    type = Exodiff
+    input = edge_crack_3d_fatigue.i
+    exodiff = 'edge_crack_3d_fatigue_out.e edge_crack_3d_fatigue_out.e-s002'
+    abs_zero = 1e-8
+    map = false
+    # XFEM requires --enable-unique-ids in libmesh
+    unique_id = true
+    requirement = 'The XFEM module shall represent a propagating crack in a 3D mechanics model with XFEM, where the crack is defined using a topologically surface cutting mesh by MeshCut3DUserObject'
+    design = 'MeshCut3DUserObject.md'
+  [../]
   [./edge_crack_3d_propagation]
     type = Exodiff
     input = edge_crack_3d_propagation.i
-    exodiff = 'edge_crack_3d_propagation_out.e edge_crack_3d_propagation_out.e-s002 edge_crack_3d_propagation_out.e-s003'
+    exodiff = 'edge_crack_3d_propagation_out.e edge_crack_3d_propagation_out.e-s002'
     abs_zero = 1e-8
     map = false
     # XFEM requires --enable-unique-ids in libmesh
@@ -90,6 +101,17 @@
     unique_id = true
     requirement = 'The XFEM system shall permit computation of fracture domain integrals in 3D mechanics problems where a stationary embedded circular crack is defined by a cutting plane geometry and points along the crack front for the domain integral provided by a class that derives from CrackFrontPointsProvider.'
     design = 'DomainIntegral/index.md CircleCutUserObject.md'
+  [../]
+    [./penny_crack_mhs]
+    type = Exodiff
+    input = penny_crack_mhs.i
+    exodiff = 'penny_crack_mhs_out.e penny_crack_mhs_out.e-s002 penny_crack_mhs_out.e-s003'
+    abs_zero = 1e-8
+    map = false
+    # XFEM requires --enable-unique-ids in libmesh
+    unique_id = true
+    requirement = 'The XFEM module shall represent a propagating crack in a 3D mechanics model with XFEM, where the crack is defined using a topologically surface cutting mesh by MeshCut3DUserObject'
+    design = 'MeshCut3DUserObject.md'
   [../]
   [./square_branch_quad_2d]
     type = Exodiff
