@@ -28,13 +28,11 @@
   [./cut_mesh]
     type = MeshCut3DUserObject
     mesh_file = mesh_edge_crack.xda
-    growth_dir_method = 'function'
     size_control = 0.1
     n_step_growth = 1
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
-    function_v = growth_func_v
   [../]
 []
 
@@ -50,10 +48,6 @@
   [./growth_func_z]
     type = ParsedFunction
     value = 0
-  [../]
-  [./growth_func_v]
-    type = ParsedFunction
-    value = 0.1   # was 1.25
   [../]
 []
 
