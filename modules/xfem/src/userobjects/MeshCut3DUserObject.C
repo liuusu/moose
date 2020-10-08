@@ -132,14 +132,7 @@ MeshCut3DUserObject::initialize()
   if (timestep == 0)
   {
     std::remove("mesh_grow.out");
-/*
-    writeCutMesh();
-*/
   }
-
-/*
-  std::cout << "current time step: " << timestep << std::endl;
-*/
 
   if (_grow)
   {
@@ -167,9 +160,6 @@ MeshCut3DUserObject::initialize()
           refineFront();
           triangulation();
           joinBoundary();
-/*
-          writeCutMesh();
-*/
         }
       }
     }
@@ -725,27 +715,6 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       i2 = _active_boundary[i].size();
     }
 
-/*
-    const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
-    const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
-    mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
-    mooseAssert(k1.size()==_active_boundary[0].size(), "the number of crack front nodes in the self-similar method should equal to the size of VPP defined at the crack front");
-    // loop over active front points
-    std::cout << std::endl;
-    std::cout << "===============" << std::endl;
-    std::cout << "====== K ======" << std::endl;
-    std::cout << "===============" << std::endl;
-    for (unsigned int j = i1; j < i2; ++j)
-    {
-      dof_id_type id = _active_boundary[i][j];
-      auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
-      unsigned int index = std::distance(_crack_front_points.begin(), it);
-      std::cout << k1[index] << ", " << k2[index] << std::endl;
-    }
-    std::cout << std::endl;
-    std::cout << std::endl;
-*/
-
     if (_growth_dir_method == "function")
       // loop over active front points
       for (unsigned int j = i1; j < i2; ++j)
@@ -824,10 +793,6 @@ MeshCut3DUserObject::growFront()
 
   for (unsigned int i = 0; i < _active_boundary.size(); ++i)
   {
-/*
-    writeVector(_active_boundary[i],"active boundary");
-    writeVector(_tracked_crack_front_points,"tracked front");
-*/
     std::vector<dof_id_type> temp;
 
     unsigned int i1 = 1;
@@ -862,10 +827,6 @@ MeshCut3DUserObject::growFront()
           unsigned long int dn = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
           _dn.push_back(dn);
           _n.push_back(_n.size() == 0 ? dn : dn + _n[_n.size()-1]);
-/*
-          writeVectorLongInt(_dn,"dN");
-          writeVectorLongInt(_n,"N");
-*/
         }
 
         Real growth_size = _growth_size[j];
@@ -882,10 +843,6 @@ MeshCut3DUserObject::growFront()
 
       dof_id_type id = _cut_mesh->n_nodes() - 1;
       temp.push_back(id);
-
-/*
-      std::cout << "adding " << id << " based on " << _active_boundary[0][j] << std::endl;
-*/
 
       if (_cfd)
       {
@@ -1089,11 +1046,6 @@ MeshCut3DUserObject::refineFront()
   }
 
   _front = new_front;
-
-/*
-  writeVector(_front[0], "front");
-  writeVector(_tracked_crack_front_points, "tracked front");
-*/
 
   if (_cfd)
   {
@@ -1328,67 +1280,3 @@ MeshCut3DUserObject::setSubCriticalGrowthSize(std::vector<Real> & growth_size)
 {
   _growth_size = growth_size;
 }
-
-/*
-void
-MeshCut3DUserObject::writeCutMesh()
-{
-  std::ofstream myfile;
-  myfile.open("mesh_grow.out", std::fstream::app);
-  myfile << _cut_mesh->n_nodes() << std::endl;
-  myfile << _cut_mesh->n_elem() << std::endl;
-  auto node_begin = _cut_mesh->nodes_begin();
-  auto node_end = _cut_mesh->nodes_end();
-  auto node_it = node_begin;
-  for (; node_it != node_end; ++node_it)
-  {
-    Node * cutnode = *node_it;
-    Point & this_point = *cutnode;
-    myfile << this_point(0) << " " << this_point(1) << " " << this_point(2) << " " << std::endl;
-  }
-  auto elem_begin2 = _cut_mesh->elements_begin();
-  auto elem_end2 = _cut_mesh->elements_end();
-  auto elem_it2 = elem_begin2;
-  for (; elem_it2 != elem_end2; ++elem_it2)
-  {
-    Elem * cut_elem = *elem_it2;
-    std::vector<unsigned int> tri;
-    for (unsigned int i = 0; i < cut_elem->n_nodes(); ++i)
-    {
-      tri.push_back(cut_elem->node_ptr(i)->id());
-    }
-    myfile << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
-  }
-  myfile.close();
-}
-
-void
-MeshCut3DUserObject::writeVector(std::vector<dof_id_type> & vec, std::string name)
-{
-  std::cout << name << ": " << std::endl;
-  for (unsigned int i = 0; i < vec.size(); ++i)
-  {
-    std::cout << vec[i] << std::endl;
-  }
-}
-
-void
-MeshCut3DUserObject::writeVectorReal(std::vector<Real> & vec, std::string name)
-{
-  std::cout << name << ": " << std::endl;
-  for (unsigned int i = 0; i < vec.size(); ++i)
-  {
-    std::cout << vec[i] << std::endl;
-  }
-}
-
-void
-MeshCut3DUserObject::writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name)
-{
-  std::cout << name << ": " << std::endl;
-  for (unsigned int i = 0; i < vec.size(); ++i)
-  {
-    std::cout << vec[i] << std::endl;
-  }
-}
-*/

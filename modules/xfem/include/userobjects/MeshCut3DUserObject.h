@@ -246,11 +246,4 @@ protected:
   const Function * _func_y;
   const Function * _func_z;
   const Function * _func_v;
-
-  /*
-  void writeCutMesh();
-  void writeVector(std::vector<dof_id_type> & vec, std::string name);
-  void writeVectorReal(std::vector<Real> & vec, std::string name);
-  void writeVectorLongInt(std::vector<unsigned long int> & vec, std::string name);
-*/
 };
