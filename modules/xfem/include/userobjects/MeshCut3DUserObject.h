@@ -111,13 +111,6 @@ protected:
   bool _stop;
   bool _grow;
 
-  /// the max growth size at the crack front in each increment of a fatigue simulation
-  Real _max_growth_size;
-
-  /// Paris law parameters for fatigue: da/dN = C*(K_effective)^m
-  Real _paris_law_c;
-  Real _paris_law_m;
-
   /// Boundary nodes of the cutter mesh
   std::vector<dof_id_type> _boundary;
 
