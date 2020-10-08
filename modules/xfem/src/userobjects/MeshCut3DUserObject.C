@@ -151,21 +151,21 @@ MeshCut3DUserObject::initialize()
       _last_step_initialized = timestep;
 
       for (unsigned int i = 0; i < _n_step_growth; ++i)
-        findActiveBoundaryNodes();
-
-      if (_stop != 1)
       {
-        findActiveBoundaryDirection();
-        growFront();
-        sortFrontNodes();
-        if (_inactive_boundary_pos.size() != 0)
-          findFrontIntersection();
-        refineFront();
-        triangulation();
-        joinBoundary();
+        if (_stop != 1)
+        {
+          findActiveBoundaryNodes();
+          findActiveBoundaryDirection();
+          growFront();
+          sortFrontNodes();
+          if (_inactive_boundary_pos.size() != 0)
+            findFrontIntersection();
+          refineFront();
+          triangulation();
+          joinBoundary();
+          writeCutMesh();
+        }
       }
-
-      writeCutMesh();
     }
   }
 }
@@ -721,6 +721,27 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
       i1 = 0;
       i2 = _active_boundary[i].size();
     }
+
+/*
+    const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
+    const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
+    mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
+    mooseAssert(k1.size()==_active_boundary[0].size(), "the number of crack front nodes in the self-similar method should equal to the size of VPP defined at the crack front");
+    // loop over active front points
+    std::cout << std::endl;
+    std::cout << "===============" << std::endl;
+    std::cout << "====== K ======" << std::endl;
+    std::cout << "===============" << std::endl;
+    for (unsigned int j = i1; j < i2; ++j)
+    {
+      dof_id_type id = _active_boundary[i][j];
+      auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
+      unsigned int index = std::distance(_crack_front_points.begin(), it);
+      std::cout << k1[index] << ", " << k2[index] << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << std::endl;
+*/
 
     // determine growth direction based on functions defined in the input file
     if (_growth_dir_method == "function")
