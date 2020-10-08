@@ -137,15 +137,10 @@ protected:
 
   /// Growth size for the active boundary in a subcritical simulation
   std::vector<Real> _growth_size;
-  std::vector<std::vector<Real>> _effective_K;
-
-  /// Maximum effective K
-  Real _max_K;
 
   /// Fatigue life
-  std::vector<unsigned long int> _dN;
-  std::vector<unsigned long int> _N;
-  std::vector<Real> _max_K_his;
+  std::vector<unsigned long int> _dn;
+  std::vector<unsigned long int> _n;
 
   /// New boundary after growth
   std::vector<std::vector<dof_id_type>> _front;

@@ -119,8 +119,8 @@ MeshCut3DUserObject::initialSetup()
 
   if (_growth_speed_method == "fatigue")
   {
-    _dN.clear();
-    _N.clear();
+    _dn.clear();
+    _n.clear();
   }
 }
 
@@ -859,12 +859,12 @@ MeshCut3DUserObject::growFront()
         // get the number of loading cycles for this growth increament
         if (j == i1)
         {
-          unsigned long int dN = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
-          _dN.push_back(dN);
-          _N.push_back(_N.size() == 0 ? dN : dN + _N[_N.size()-1]);
+          unsigned long int dn = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
+          _dn.push_back(dn);
+          _n.push_back(_n.size() == 0 ? dn : dn + _n[_n.size()-1]);
 /*
-          writeVectorLongInt(_dN,"dN");
-          writeVectorLongInt(_N,"N");
+          writeVectorLongInt(_dn,"dN");
+          writeVectorLongInt(_n,"N");
 */
         }
 

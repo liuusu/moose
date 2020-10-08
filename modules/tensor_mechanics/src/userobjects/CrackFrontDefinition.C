@@ -343,35 +343,30 @@ CrackFrontDefinition::initialSetup()
 void
 CrackFrontDefinition::initialize()
 {
-  // we need a if statement to limit this section to only meshcutter growth problem.
-
-  // below is copied from CrackFrontDefinition::initialSetup()
-  // the purpose is to prepare for J-integral calculations using updated crack front
-  // some lines were removed as they only affect initialsetup
-  if (_crack_front_points_provider != nullptr)
+  // Below is copied from CrackFrontDefinition::initialSetup()
+  // The purpose is to prepare for J-integral calculations using updated crack front
+  if (_use_mesh_cutter)
   {
-    _crack_front_points = _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
-    if (_use_mesh_cutter)
-      _crack_plane_normals = _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
-  }
-
-  // assume that _crack_mouth_boundary_ids and _intersecting_boundary_ids does not change with crack growth
-
-  // for our problems, _geom_definition_method.ne.CRACK_GEOM_DEFINITION::CRACK_FRONT_NODES,
-  // _q_function_rings=0, _t_stress=0, _q_function_type=GEOMETRY
-
-  updateCrackFrontGeometry();
-
-  std::size_t num_crack_front_points = getNumCrackFrontPoints();
-  if (_q_function_type == "GEOMETRY")
-  {
-    if (!_treat_as_2d)
-      if (num_crack_front_points < 1)
-        mooseError("num_crack_front_points is not > 0");
-    for (std::size_t i = 0; i < num_crack_front_points; ++i)
+    if (_crack_front_points_provider != nullptr)
     {
-      bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
-      _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
+      _crack_front_points = _crack_front_points_provider->getCrackFrontPoints(_num_points_from_provider);
+      if (_use_mesh_cutter)
+        _crack_plane_normals = _crack_front_points_provider->getCrackPlaneNormals(_num_points_from_provider);
+    }
+
+    updateCrackFrontGeometry();
+
+    std::size_t num_crack_front_points = getNumCrackFrontPoints();
+    if (_q_function_type == "GEOMETRY")
+    {
+      if (!_treat_as_2d)
+        if (num_crack_front_points < 1)
+          mooseError("num_crack_front_points is not > 0");
+      for (std::size_t i = 0; i < num_crack_front_points; ++i)
+      {
+        bool is_point_on_intersecting_boundary = isPointWithIndexOnIntersectingBoundary(i);
+        _is_point_on_intersecting_boundary.push_back(is_point_on_intersecting_boundary);
+      }
     }
   }
 }
@@ -869,7 +864,7 @@ CrackFrontDefinition::updateCrackFrontGeometry()
       RealVectorValue tangent_direction = back_segment + forward_segment;
       tangent_direction = tangent_direction / tangent_direction.norm();
 
-      // If the end directions are given by the user, correct also the tangent at the end nodes
+      // If end tangent directions are given, correct the tangent at the end nodes
       if (_direction_method == DIRECTION_METHOD::CURVED_CRACK_FRONT &&
           _end_direction_method == END_DIRECTION_METHOD::END_CRACK_TANGENT_VECTOR)
       {
@@ -1363,8 +1358,6 @@ CrackFrontDefinition::calculateRThetaToCrackFront(const Point qp,
   else
     x_local = -1;
 
-  //out std::cout << point_index << "," << qp << "============" << std::endl;
-
   // Calculate theta based on in which quadrant in the crack front coordinate
   // system the qp is located
   if (r > 0)
@@ -1373,11 +1366,8 @@ CrackFrontDefinition::calculateRThetaToCrackFront(const Point qp,
     if (MooseUtils::absoluteFuzzyEqual(r, p_to_plane_dist, _tol))
       theta_quadrant1 = 0.5 * libMesh::pi;
     else if (p_to_plane_dist > r)
-    {
-      std::cout << p_to_plane_dist << "," << r << std::endl;
       mooseError(
           "Invalid distance p_to_plane_dist in CrackFrontDefinition::calculateRThetaToCrackFront");
-    }
     else
       theta_quadrant1 = std::asin(p_to_plane_dist / r);
 

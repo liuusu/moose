@@ -38,16 +38,16 @@ protected:
   /// Cutter mesh
   MeshCut3DUserObject * _cutter;
   /// Number of cycles for this growth increament
-  unsigned long int _dN;
+  unsigned long int _dn;
   /// Length of crack growth at the point with largest K
   Real _max_growth_size;
   /// Paris law parameters
   Real _paris_law_c;
   Real _paris_law_m;
   /// Effective K for active cutter nodes
-  std::vector<Real> _effective_K;
+  std::vector<Real> _effective_k;
   /// Growth length for active cutter nodes
   std::vector<Real> _growth_size;
   /// Maximum effective K
-  Real _max_K;
+  Real _max_k;
 };

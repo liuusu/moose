@@ -48,7 +48,7 @@ ParisLaw::ParisLaw(const InputParameters & parameters)
 void
 ParisLaw::initialize()
 {
-  _dN = 0;
+  _dn = 0;
 }
 
 void
@@ -66,26 +66,26 @@ ParisLaw::execute()
   mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
   unsigned int size_this_segment = k1.size();
 
-  _effective_K.clear();
+  _effective_k.clear();
 
   for (unsigned int i = 0; i < size_this_segment; ++i)
   {
     int ind = index[i];
     if (ind == -1)
-      _effective_K.push_back(0.0);
+      _effective_k.push_back(0.0);
     else if (ind >= 0)
     {
-      Real effective_K = sqrt(pow(k1[ind],2) + 2 * pow(k2[ind],2));
-      _effective_K.push_back(effective_K);
+      Real effective_k = sqrt(pow(k1[ind],2) + 2 * pow(k2[ind],2));
+      _effective_k.push_back(effective_k);
     }
     else
       mooseError("index must be either -1 (inactive) or >= 0 (active)");
   }
 
-  Real _max_K = *std::max_element(_effective_K.begin(), _effective_K.end());
+  Real _max_k = *std::max_element(_effective_k.begin(), _effective_k.end());
 
   // Calculate dN
-  _dN = (unsigned long int) (_max_growth_size / (_paris_law_c * pow(_max_K, _paris_law_m)));
+  _dn = (unsigned long int) (_max_growth_size / (_paris_law_c * pow(_max_k, _paris_law_m)));
 
   _growth_size.clear();
 
@@ -96,8 +96,8 @@ ParisLaw::execute()
       _growth_size.push_back(0.0);
     else if (ind >= 0)
     {
-      Real effective_K = _effective_K[i];
-      Real growth_size = _max_growth_size * pow(effective_K/_max_K, _paris_law_m);
+      Real effective_k = _effective_k[i];
+      Real growth_size = _max_growth_size * pow(effective_k/_max_k, _paris_law_m);
       _growth_size.push_back(growth_size);
     }
   }
@@ -108,5 +108,5 @@ ParisLaw::execute()
 Real
 ParisLaw::getValue()
 {
-  return _dN * 1.0;
+  return _dn * 1.0;
 }
