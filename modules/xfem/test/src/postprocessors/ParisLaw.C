@@ -35,7 +35,7 @@ validParams<ParisLaw>()
 
 ParisLaw::ParisLaw(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
-    _cutter(&_fe_problem.getUserObject<MeshCut3DUserObject>("cut_mesh")) // should be deleted
+    _cutter(&_fe_problem.getUserObject<MeshCut3DUserObject>("cut_mesh"))
 {
   if (!isParamValid("max_growth_size") || !isParamValid("paris_law_c") || !isParamValid("paris_law_m"))
     mooseError("max_growth_size and C & m of the Paris law are required parameters for the fatigue simulation");
@@ -84,7 +84,7 @@ ParisLaw::execute()
 
   Real _max_K = *std::max_element(_effective_K.begin(), _effective_K.end());
 
-  // calculate dN
+  // Calculate dN
   _dN = (unsigned long int) (_max_growth_size / (_paris_law_c * pow(_max_K, _paris_law_m)));
 
   _growth_size.clear();

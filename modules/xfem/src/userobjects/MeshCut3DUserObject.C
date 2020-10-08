@@ -49,7 +49,7 @@ MeshCut3DUserObject::validParams()
   return params;
 }
 
-// this code does not allow predefined crack growth as a function of time
+// This code does not allow predefined crack growth as a function of time
 // all inital cracks are defined at t_start = t_end = 0
 MeshCut3DUserObject::MeshCut3DUserObject(const InputParameters & parameters)
   : GeometricCutUserObject(parameters),
@@ -132,10 +132,14 @@ MeshCut3DUserObject::initialize()
   if (timestep == 0)
   {
     std::remove("mesh_grow.out");
+/*
     writeCutMesh();
+*/
   }
 
+/*
   std::cout << "current time step: " << timestep << std::endl;
+*/
 
   if (_grow)
   {
@@ -163,7 +167,9 @@ MeshCut3DUserObject::initialize()
           refineFront();
           triangulation();
           joinBoundary();
+/*
           writeCutMesh();
+*/
         }
       }
     }
@@ -818,8 +824,10 @@ MeshCut3DUserObject::growFront()
 
   for (unsigned int i = 0; i < _active_boundary.size(); ++i)
   {
+/*
     writeVector(_active_boundary[i],"active boundary");
     writeVector(_tracked_crack_front_points,"tracked front");
+*/
     std::vector<dof_id_type> temp;
 
     unsigned int i1 = 1;
@@ -854,8 +862,10 @@ MeshCut3DUserObject::growFront()
           unsigned long int dN = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
           _dN.push_back(dN);
           _N.push_back(_N.size() == 0 ? dN : dN + _N[_N.size()-1]);
+/*
           writeVectorLongInt(_dN,"dN");
           writeVectorLongInt(_N,"N");
+*/
         }
 
         Real growth_size = _growth_size[j];
@@ -873,7 +883,9 @@ MeshCut3DUserObject::growFront()
       dof_id_type id = _cut_mesh->n_nodes() - 1;
       temp.push_back(id);
 
+/*
       std::cout << "adding " << id << " based on " << _active_boundary[0][j] << std::endl;
+*/
 
       if (_cfd)
       {
@@ -1078,8 +1090,10 @@ MeshCut3DUserObject::refineFront()
 
   _front = new_front;
 
+/*
   writeVector(_front[0], "front");
   writeVector(_tracked_crack_front_points, "tracked front");
+*/
 
   if (_cfd)
   {
@@ -1285,6 +1299,37 @@ MeshCut3DUserObject::getCrackPlaneNormals(unsigned int number_crack_front_points
   return crack_plane_normals;
 }
 
+std::vector<int>
+MeshCut3DUserObject::getFrontPointsIndex()
+{
+  // Crack front definition using the cutter mesh currently only supports one active crack front segment
+  unsigned int ibnd = 0;
+  unsigned int size_this_segment = _active_boundary[ibnd].size();
+  unsigned int n_inactive_nodes = _inactive_boundary_pos.size();
+
+  std::vector<int> index(size_this_segment, -1);
+
+  unsigned int i1 = n_inactive_nodes == 0 ? 0 : 1;
+  unsigned int i2 = n_inactive_nodes == 0 ? size_this_segment : size_this_segment-1;
+
+  // loop over active front points
+  for (unsigned int j = i1; j < i2; ++j)
+  {
+    dof_id_type id = _active_boundary[ibnd][j];
+    auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
+    index[j] = std::distance(_crack_front_points.begin(), it);
+  }
+
+  return index;
+}
+
+void
+MeshCut3DUserObject::setSubCriticalGrowthSize(std::vector<Real> & growth_size)
+{
+  _growth_size = growth_size;
+}
+
+/*
 void
 MeshCut3DUserObject::writeCutMesh()
 {
@@ -1317,36 +1362,6 @@ MeshCut3DUserObject::writeCutMesh()
   myfile.close();
 }
 
-std::vector<int>
-MeshCut3DUserObject::getFrontPointsIndex()
-{
-  // Crack front definition using the cutter mesh currently only supports one active crack front segment
-  unsigned int ibnd = 0;
-  unsigned int size_this_segment = _active_boundary[ibnd].size();
-  unsigned int n_inactive_nodes = _inactive_boundary_pos.size();
-
-  std::vector<int> index(size_this_segment, -1);
-
-  unsigned int i1 = n_inactive_nodes == 0 ? 0 : 1;
-  unsigned int i2 = n_inactive_nodes == 0 ? size_this_segment : size_this_segment-1;
-
-  // loop over active front points
-  for (unsigned int j = i1; j < i2; ++j)
-  {
-    dof_id_type id = _active_boundary[ibnd][j];
-    auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
-    index[j] = std::distance(_crack_front_points.begin(), it);
-  }
-
-  return index;
-}
-
-void
-MeshCut3DUserObject::setSubCriticalGrowthSize(std::vector<Real> & growth_size)
-{
-  _growth_size = growth_size;
-}
-
 void
 MeshCut3DUserObject::writeVector(std::vector<dof_id_type> & vec, std::string name)
 {
@@ -1376,3 +1391,4 @@ MeshCut3DUserObject::writeVectorLongInt(std::vector<unsigned long int> & vec, st
     std::cout << vec[i] << std::endl;
   }
 }
+*/
