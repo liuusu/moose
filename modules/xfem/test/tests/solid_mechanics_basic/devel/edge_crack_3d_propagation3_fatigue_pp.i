@@ -10,62 +10,84 @@
 []
 
 [Mesh]
-  file = quarter_sym.e
+  type = GeneratedMesh
+  dim = 3
+  nx = 11
+  ny = 11
+  nz = 10
+  xmin = 0.0
+  xmax = 1.0
+  ymin = 0.0
+  ymax = 1.0
+  zmin = 0.0
+  zmax = 0.2
+  elem_type = HEX8
 []
 
 [UserObjects]
   [./cut_mesh]
     type = MeshCut3DUserObject
-    mesh_file = mesh_penny_crack.xda
-    size_control = 0.125
+    mesh_file = mesh_edge_crack3.xda
+    growth_dir_method = 'function'
+    size_control = 1
     n_step_growth = 1
-    growth_dir_method = 'max_hoop_stress'
+    growth_speed_method = 'fatigue'
+    max_growth_size = 0.05
+    paris_law_c = 1e-13
+    paris_law_m = 2.5
     function_x = growth_func_x
     function_y = growth_func_y
     function_z = growth_func_z
     function_v = growth_func_v
-    crack_front_nodes = '5 4 3 2 1'
+    crack_front_nodes = '9 8 7 6 5 4'
   [../]
 []
 
 [Functions]
   [./growth_func_x]
     type = ParsedFunction
-    value = (x+0.5)
+    value = 1
   [../]
   [./growth_func_y]
     type = ParsedFunction
-    value = (y+0.5)
+    value = 0
   [../]
   [./growth_func_z]
     type = ParsedFunction
-    value = z
+    value = 0
   [../]
   [./growth_func_v]
     type = ParsedFunction
-    vars = 'j'
-    vals = 'j_avr'
-    value = j*25000
+    vars = 'v'
+    vals = 'v_fatigue'
+    value = v
+  [../]
+[]
+
+[Postprocessors]
+  [./v_fatigue]
+    type = PPFatigue
+    vpp_type = 'v_fatigue'
+    vpp_name = 'v_fatigue'
+    max_growth_size = 0.1
+    paris_law_c = 1e-13
+    paris_law_m = 2.5
   [../]
 []
 
 [DomainIntegral]
-  integrals = 'Jintegral'
+  integrals = 'Jintegral InteractionIntegralKI InteractionIntegralKII'
   displacements = 'disp_x disp_y disp_z'
   crack_front_points_provider = cut_mesh
-  number_points_from_provider = 5
-  crack_end_direction_method = CrackDirectionVector
-  crack_direction_vector_end_1 = '0 1 0'
-  crack_direction_vector_end_2 = '1 0 0'
+  number_points_from_provider = 6
   crack_direction_method = CurvedCrackFront
-  intersecting_boundary = '3 4' #It would be ideal to use this, but can't use with XFEM yet
-  radius_inner = '0.3'
-  radius_outer = '0.6'
+  radius_inner = '0.15'
+  radius_outer = '0.3'
   poissons_ratio = 0.3
   youngs_modulus = 207000
-  block = 1
+  block = 0
   incremental = true
-  solid_mechanics = true
+  tensor_mechanics = true
 []
 
 [Modules/TensorMechanics/Master]
@@ -77,55 +99,36 @@
 []
 
 [Functions]
-  [./top_trac_z]
+  [./top_trac_y]
     type = ConstantFunction
     value = 10
   [../]
 []
 
-[Postprocessors]
-  [./j_avr]
-    type = VPPAverage
-    vpp_type = 'J_1'
-    vpp_name = 'J_1'
-  [../]
-[]
 
 [BCs]
-  [./top_z]
+  [./top_y]
     type = FunctionNeumannBC
-    boundary = 2
-    variable = disp_z
-    function = top_trac_z
+    boundary = top
+    variable = disp_y
+    function = top_trac_y
   [../]
   [./bottom_x]
     type = DirichletBC
-    boundary = 1
+    boundary = bottom
     variable = disp_x
     value = 0.0
   [../]
   [./bottom_y]
     type = DirichletBC
-    boundary = 1
+    boundary = bottom
     variable = disp_y
     value = 0.0
   [../]
   [./bottom_z]
     type = DirichletBC
-    boundary = 1
+    boundary = bottom
     variable = disp_z
-    value = 0.0
-  [../]
-  [./sym_y]
-    type = DirichletBC
-    boundary = 3
-    variable = disp_y
-    value = 0.0
-  [../]
-  [./sym_x]
-    type = DirichletBC
-    boundary = 4
-    variable = disp_x
     value = 0.0
   [../]
 []
@@ -135,9 +138,11 @@
     type = ComputeIsotropicElasticityTensor
     youngs_modulus = 207000
     poissons_ratio = 0.3
+    block = 0
   [../]
   [./stress]
     type = ComputeFiniteStrainElasticStress
+    block = 0
   [../]
 []
 
@@ -161,19 +166,19 @@
 
 # controls for nonlinear iterations
   nl_max_its = 15
-  nl_rel_tol = 1e-10
+  nl_rel_tol = 1e-12
   nl_abs_tol = 1e-10
 
 # time control
   start_time = 0.0
   dt = 1.0
-  end_time = 4.0
+  end_time = 6.0
+  max_xfem_update = 1
 []
 
 [Outputs]
-  csv = true
-  file_base = penny_crack_out
-  execute_on = timestep_end
+  file_base = edge_crack_3d_propagation_out
+  execute_on = 'timestep_end'
   exodus = true
   [./console]
     type = Console

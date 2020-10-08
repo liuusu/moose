@@ -785,7 +785,6 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
         dir_cfc(1) = sin(theta);  // this sign needs verification
         dir_cfc(2) = 0;
         dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,index);
-        std::cout << "index, theta, k1, k2, dir(3): " << index << "  " << theta/3.14*180 << "    " << k1[index] << "  " << k2[index] << "    " << dir_cfc(0) << "  " << dir_cfc(1) << "    " << dir(0) << "  " << dir(1) << "  " << dir(2) << std::endl;
 
         temp.push_back(dir);
       }
@@ -847,8 +846,6 @@ MeshCut3DUserObject::growFront()
       mooseAssert(this_node, "Node is NULL");
       Point & this_point = *this_node;
       Point dir = _active_direction[i][j];
-      // note that _active_boundary and _crack_front_definition may be in reversed order
-      // std::cout << "old dir(3): " << dir(0) << "," << dir(1) << "," << dir(2) << std::endl;
 
       Point x;
 
@@ -861,11 +858,15 @@ MeshCut3DUserObject::growFront()
 
       else if (_growth_speed_method == "fatigue")
       {
-        unsigned long int dN = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
-        _dN.push_back(dN);
-        _N.push_back(_N.size() == 0 ? dN : dN + _N[_N.size()-1]);
-        writeVectorLongInt(_dN,"dN");
-        writeVectorLongInt(_N,"N");
+        // number of loading cycles
+        if (j == i1)
+        {
+          unsigned long int dN = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
+          _dN.push_back(dN);
+          _N.push_back(_N.size() == 0 ? dN : dN + _N[_N.size()-1]);
+          writeVectorLongInt(_dN,"dN");
+          writeVectorLongInt(_N,"N");
+        }
 
         Real growth_size = _growth_size[j];
 
@@ -1032,14 +1033,6 @@ MeshCut3DUserObject::findFrontIntersection()
 void
 MeshCut3DUserObject::refineFront()
 {
-  //for (unsigned int i = 0; i < _tracked_crack_front_points.size(); ++i)
-  //{
-  //  Node * this_node = _cut_mesh->node_ptr(_tracked_crack_front_points[i]);
-  //  mooseAssert(this_node, "Node is NULL");
-  //  Point & this_point = *this_node;
-  //  std::cout << this_point(0) << " " << this_point(1) << " " << this_point(2) << " " << _tracked_crack_front_points[i] << std::endl;
-  //}
-
   std::vector<std::vector<dof_id_type>> new_front(_front.begin(), _front.end());
 
   for (unsigned int ifront = 0; ifront < _front.size(); ++ifront)
@@ -1250,9 +1243,7 @@ MeshCut3DUserObject::getCrackFrontPoints(unsigned int number_crack_front_points)
   std::vector<Point> crack_front_points(number_crack_front_points);
   // number_crack_front_points is updated via _crack_front_definition->changeCrackFrontNodeNumber(_crack_front_points.size())
   if (number_crack_front_points != _crack_front_points.size())
-  {
-    std::cout << "number_points_from_provider does not match the number of nodes given in crack_front_nodes: " << number_crack_front_points << " and " << _crack_front_points.size() << std::endl;
-  }
+    mooseError("number_points_from_provider does not match the number of nodes given in crack_front_nodes");
   for (unsigned int i = 0; i < number_crack_front_points; ++i)
   {
     dof_id_type id = _crack_front_points[i];
@@ -1302,9 +1293,6 @@ MeshCut3DUserObject::getCrackPlaneNormals(unsigned int number_crack_front_points
     for (unsigned int j = 0; j < n_elem; ++j)
       normal_avr += elem_to_normal_map[elems[j]];
     normal_avr = normal_avr/n_elem;
-
-    std::cout << id << ": " << normal_avr << std::endl;
-    std::cout << "======================" << std::endl;
     crack_plane_normals[i] = normal_avr;
   }
   return crack_plane_normals;

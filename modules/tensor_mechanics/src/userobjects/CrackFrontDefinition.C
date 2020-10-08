@@ -987,13 +987,13 @@ CrackFrontDefinition::updateCrackFrontGeometry()
       std::cout << "crack tangent  : " << _tangent_directions[i] << std::endl;
     }
     std::cout << "" << std::endl;
+    std::cout << "a simplified version for using cs1 in mainpenny.m" << std::endl;
     for (std::size_t i = 0; i < num_crack_front_points; ++i)
     {
       std::cout << _crack_directions[i] << std::endl;
       std::cout << _crack_plane_normals[i] << std::endl;
       std::cout << _tangent_directions[i] << std::endl;
     }
-
 
     _console << "Summary of J-Integral crack front geometry:" << std::endl;
     _console << "index   node id   x coord       y coord       z coord       x dir         y dir   "

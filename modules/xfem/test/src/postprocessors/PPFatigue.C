@@ -48,7 +48,7 @@ PPFatigue::PPFatigue(const InputParameters & parameters)
 void
 PPFatigue::initialize()
 {
-  _dN_this = 0;
+  _dN = 0;
 }
 
 void
@@ -85,10 +85,7 @@ PPFatigue::execute()
   Real _max_K = *std::max_element(_effective_K.begin(), _effective_K.end());
 
   // calculate dN
-  _dN_this = (unsigned long int) (_max_growth_size / (_paris_law_c * pow(_max_K, _paris_law_m)));
-  _dN.push_back(_dN_this);
-  _N.push_back(_N.size() == 0 ? _dN_this : _dN_this + _N[_N.size()-1]);
-  _max_K_his.push_back(_max_K);
+  _dN = (unsigned long int) (_max_growth_size / (_paris_law_c * pow(_max_K, _paris_law_m)));
 
   _growth_size.clear();
 
@@ -111,5 +108,5 @@ PPFatigue::execute()
 Real
 PPFatigue::getValue()
 {
-  return _dN_this * 1.0;
+  return _dN * 1.0;
 }

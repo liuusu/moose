@@ -36,7 +36,7 @@ public:
 
 protected:
   /// The value of the variable at the desired location
-  unsigned long int _dN_this;
+  unsigned long int _dN;
   MeshCut3DUserObject * _cutter;
   Real _max_growth_size;
   Real _paris_law_c;
@@ -48,9 +48,4 @@ protected:
 
   /// Maximum effective K
   Real _max_K;
-
-  /// Fatigue life
-  std::vector<unsigned long int> _dN;
-  std::vector<unsigned long int> _N;
-  std::vector<Real> _max_K_his;
 };
