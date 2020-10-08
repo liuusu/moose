@@ -184,8 +184,6 @@ bool
 MeshCut3DUserObject::cutElementByGeometry(const Elem * elem,
                                           std::vector<Xfem::CutFace> & cut_faces,
                                           Real /*time*/) const
-// With the crack defined by a planar mesh, this method cuts a solid element by all elements in the
-// planar mesh
 // TODO: Time evolving cuts not yet supported in 3D (hence the lack of use of the time variable)
 {
   bool elem_cut = false;
@@ -696,7 +694,6 @@ MeshCut3DUserObject::findActiveBoundaryNodes()
 
 void
 MeshCut3DUserObject::findActiveBoundaryDirection()
-// find growth direction of each boundary node; this is currently assgined by parsed functions;
 {
   mooseAssert( !(_cfd && _active_boundary.size() != 1), "crack-front-definition using the cutter mesh only supports one active crack front segment for now");
 
@@ -743,7 +740,6 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
     std::cout << std::endl;
 */
 
-    // determine growth direction based on functions defined in the input file
     if (_growth_dir_method == "function")
       // loop over active front points
       for (unsigned int j = i1; j < i2; ++j)
@@ -761,30 +757,25 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
     // determine growth direction based on KI and KII at the crack front
     else if (_growth_dir_method == "max_hoop_stress")
     {
-      // get KI and KII at front points
-      // const VectorPostprocessorValue & j = getVectorPostprocessorValueByName("J_1","J_1");
       const VectorPostprocessorValue & k1 = getVectorPostprocessorValueByName("II_KI_1","II_KI_1");
       const VectorPostprocessorValue & k2 = getVectorPostprocessorValueByName("II_KII_1","II_KII_1");
       mooseAssert(k1.size()==k2.size(), "KI and KII VPPs should have the same size");
       mooseAssert(k1.size()==_active_boundary[0].size(), "the number of crack front nodes in the self-similar method should equal to the size of VPP defined at the crack front");
       mooseAssert(_crack_front_points.size()==_active_boundary[0].size(), "the number of crack front nodes should be the same in _crack_front_points and _active_boundary[0]");
 
-      // loop over active front points
+      // the node order in _active_boundary[0] and _crack_front_points may be the same or opposite, their correspondence is needed
+      std::vector<int> index = getFrontPointsIndex();
+
       for (unsigned int j = i1; j < i2; ++j)
       {
-        dof_id_type id = _active_boundary[i][j];
-        // it is important to know that the node order in _active_boundary[0] and _crack_front_points may be the same or opposite
-        // therefore, we need to find the corresponding crack front point index
-        auto it = std::find(_crack_front_points.begin(), _crack_front_points.end(), id);
-        unsigned int index = std::distance(_crack_front_points.begin(), it);
-
-        Real theta = 2 * atan((k1[index]-sqrt(k1[index]*k1[index]+k2[index]*k2[index])) / (4*k2[index]));
+        int ind = index[j];
+        Real theta = 2 * atan((k1[ind]-sqrt(k1[ind]*k1[ind]+k2[ind]*k2[ind])) / (4*k2[ind]));
         RealVectorValue dir_cfc;  // growth direction in crack front coord (cfc) system based on the max hoop stress criterion
         RealVectorValue dir;  // growth direction in global coord system based on the max hoop stress criterion
         dir_cfc(0) = cos(theta);
-        dir_cfc(1) = sin(theta);  // this sign needs verification
+        dir_cfc(1) = sin(theta);
         dir_cfc(2) = 0;
-        dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,index);
+        dir = _crack_front_definition->rotateFromCrackFrontCoordsToGlobal(dir_cfc,ind);
 
         temp.push_back(dir);
       }
@@ -804,7 +795,6 @@ MeshCut3DUserObject::findActiveBoundaryDirection()
   }
 
   // normalize the directional vector
-  // I think this normalization procedure needs improvement
   Real maxl = 0;
 
   for (unsigned int i = 0; i < _active_direction.size(); ++i)
@@ -858,7 +848,7 @@ MeshCut3DUserObject::growFront()
 
       else if (_growth_speed_method == "fatigue")
       {
-        // number of loading cycles
+        // get the number of loading cycles for this growth increament
         if (j == i1)
         {
           unsigned long int dN = (unsigned long int) _func_v->value(0, Point(0, 0, 0));
@@ -871,7 +861,7 @@ MeshCut3DUserObject::growFront()
         Real growth_size = _growth_size[j];
 
         for (unsigned int k = 0; k < LIBMESH_DIM; ++k)
-          x(k) = this_point(k) + dir(k) * growth_size;   // used to multiply _size_control too
+          x(k) = this_point(k) + dir(k) * growth_size;
       }
 
       else
@@ -926,7 +916,6 @@ MeshCut3DUserObject::findFrontIntersection()
       mooseAssert(this_node, "Node is NULL");
       Point & p2 = *this_node;
 
-      // used to be node_id = _front[i][1]; can be improved
       if (_front[i].size() >= 4)
         node_id = _front[i][2];
       else
@@ -941,7 +930,6 @@ MeshCut3DUserObject::findFrontIntersection()
       mooseAssert(this_node, "Node is NULL");
       Point & p4 = *this_node;
 
-      // used to be node_id = _front[i][_front[i].size() - 2]; can be improved
       if (_front[i].size() >= 4)
         node_id = _front[i][_front[i].size() - 3];
       else
@@ -1093,7 +1081,6 @@ MeshCut3DUserObject::refineFront()
   writeVector(_front[0], "front");
   writeVector(_tracked_crack_front_points, "tracked front");
 
-  // limitation: this approach does not currently support growth of one crack front into two
   if (_cfd)
   {
     if (_front[0][0] == _tracked_crack_front_points[0] && _front[0].back() == _tracked_crack_front_points.back())
@@ -1275,14 +1262,14 @@ MeshCut3DUserObject::getCrackPlaneNormals(unsigned int number_crack_front_points
     Point & p1 = *elem->node_ptr(0);
     Point & p2 = *elem->node_ptr(1);
     Point & p3 = *elem->node_ptr(2);
-    Plane elem_plane(p3, p2, p1);   // to match the current normal of 0,0,-1; can be improved
+    Plane elem_plane(p3, p2, p1);   // to match the current normal of 0,0,-1;
     RealVectorValue normal = elem_plane.unit_normal(p1);
     elem_to_normal_map[elem->id()] = normal;
   }
 
   // for any front node, the normal is averaged based on the normals of all elements sharing this node
   // this code may fail when the front node has no element connected to it, e.g. refinement at step 1
-  // needs to be improved
+  // has to be disabled
   for (unsigned int i = 0; i < number_crack_front_points; ++i)
   {
     dof_id_type id = _crack_front_points[i];
@@ -1301,7 +1288,6 @@ MeshCut3DUserObject::getCrackPlaneNormals(unsigned int number_crack_front_points
 void
 MeshCut3DUserObject::writeCutMesh()
 {
-  // writing mesh to output file for visualization
   std::ofstream myfile;
   myfile.open("mesh_grow.out", std::fstream::app);
   myfile << _cut_mesh->n_nodes() << std::endl;
